@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Followers</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="overall">
+      <div class="overlay overlay-left"></div>
+      <div class="overlay overlay-right"></div>
+      <div class="frame">
+        <div class="grabber grabber-left"></div>
+        <div class="grabber grabber-right"></div>
+      </div>
+      <canvas></canvas>
+    </div>
+
+    <div id="buttons" class="buttons"></div>
+    <script id="vs" type="x-shader/vertex">
+      attribute vec2 position;
+      void main() {
+       // gl_PointSize = 4.0;
+       gl_PointSize = 1.0;
+        gl_Position = vec4( position, 0.0, 1.0 );
+      }
+    </script>
+    <script id="fs" type="x-shader/fragment">
+      uniform float time;
+      uniform vec2 resolution;
+      uniform sampler2D colorTexture;
+      void main( void ) {
+        vec4 baseColor = texture2D(colorTexture, gl_PointCoord.xy);
+
+        if (baseColor.a < 0.5) {
+          //discard;
+        }
+
+        gl_FragColor = baseColor;
+      }
+    </script>
+    <script src="script.js" type="text/javascript"></script>
+  </body>
+</html>
