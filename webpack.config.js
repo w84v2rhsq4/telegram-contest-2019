@@ -11,6 +11,10 @@ const config = {
       {
         test: /\.css$/,
         use: ["style-loader", "css-loader", "postcss-loader"]
+      },
+      {
+        test: /\.vert|frag$/,
+        use: "raw-loader"
       }
     ]
   },

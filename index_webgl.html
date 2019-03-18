@@ -5,9 +5,8 @@
     <title>Followers</title>
   </head>
   <body>
-    <div class="chart-container">
-      <canvas id="chart-canvas"></canvas>
-    </div>
+    <canvas id="chart-canvas" class="chart-canvas"></canvas>
+
     <div id="frame-changing-results"></div>
     <div id="overall" class="overall">
       <div id="left-overlay" class="overlay overlay-left"></div>
@@ -24,23 +23,6 @@
         Switch to Night Mode
       </button>
     </div>
-    <script id="vs" type="x-shader/vertex">
-      attribute vec2 position;
-      void main() {
-       // gl_PointSize = 4.0;
-       gl_PointSize = 2.0;
-        gl_Position = vec4( position, 0.0, 1.0 );
-      }
-    </script>
-    <script id="fs" type="x-shader/fragment">
-      uniform vec3 color;
-      uniform sampler2D colorTexture;
-      void main( void ) {
-        vec4 baseColor = texture2D(colorTexture, gl_PointCoord.xy);
-
-        gl_FragColor = vec4(baseColor.rgb+color, baseColor.a);
-      }
-    </script>
     <script src="dist/main.js" type="text/javascript"></script>
   </body>
 </html>
