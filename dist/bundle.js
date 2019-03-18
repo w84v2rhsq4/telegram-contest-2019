@@ -127,6 +127,17 @@ function initFrame() {
   });
 }
 
+function initThemeSwitcher() {
+  document.getElementById("theme-switcher").addEventListener("click", e => {
+    const nightMode = document.body.classList.contains("dark");
+    console.log("nightMode: ", nightMode);
+
+    e.target.innerText = `Switch to ${nightMode ? "Night Mode" : "Day Mode"}`;
+
+    document.body.classList.toggle("dark");
+  });
+}
+
 async function fetchTextureImg() {
   const image = new Image();
   image.src = "./green.png";
@@ -165,6 +176,7 @@ async function main() {
   console.log(data);
   insertButtons(data);
   initFrame();
+  initThemeSwitcher();
   buildPoints(data);
   init();
 
@@ -402,11 +414,9 @@ class DraggablePlot {
     this.rightBorder = rightBorder;
     this.frameChangeCallback = frameChangeCallback;
 
-    this.bindEvents();
-  }
-
-  bindEvents() {
     this.frameDraggingStartPoint = undefined;
+    this.leftDraggingStartPoint = undefined;
+    this.leftDraggingStartPoint = undefined;
 
     this.$container = document.getElementById(containerId);
     this.$leftGrabber = document.getElementById(leftGrabberId);
@@ -434,9 +444,9 @@ class DraggablePlot {
         this.handleMouseMove(event);
         break;
       }
-      case "mouseleave": {
-        break;
-      }
+      //   case "mouseleave": {
+      //     break;
+      //   }
       case "mousedown": {
         this.handleMouseDown(event);
         break;
@@ -453,15 +463,15 @@ class DraggablePlot {
       target: { id: targetId }
     } = e;
     switch (targetId) {
-      case leftGrabberId: {
-        break;
-      }
-      case rightGrabberId: {
-        break;
-      }
-      case frameId: {
-        break;
-      }
+      //   case leftGrabberId: {
+      //     break;
+      //   }
+      //   case rightGrabberId: {
+      //     break;
+      //   }
+      //   case frameId: {
+      //     break;
+      //   }
       case leftOverlayId: {
         this.handleOverlayClick(e, { side: "left" });
         break;
@@ -478,6 +488,14 @@ class DraggablePlot {
       target: { id: targetId }
     } = e;
     switch (targetId) {
+      case leftGrabberId: {
+        this.startLeftGrabberDrag(e);
+        break;
+      }
+      case rightGrabberId: {
+        this.startRightGrabberDrag(e);
+        break;
+      }
       case frameId: {
         this.startFrameDrag(e);
         break;
@@ -489,32 +507,83 @@ class DraggablePlot {
     if (this.isFrameDragging()) {
       this.processFrameDrag(e);
     }
+    if (this.isLeftGrabberDragging()) {
+      this.processLeftGrabberDrag(e);
+    }
+    if (this.isRightGrabberDragging()) {
+      this.processRightGrabberDrag(e);
+    }
   }
 
-  handleMouseUp(e) {
+  handleMouseUp() {
     if (this.isFrameDragging()) {
       this.stopFrameDrag();
     }
+    if (this.isLeftGrabberDragging()) {
+      this.stopLeftGrabberDrag();
+    }
+    if (this.isRightGrabberDragging()) {
+      this.stopRightGrabberDrag();
+    }
+  }
+
+  /** Left dragging */
+  isLeftGrabberDragging() {
+    return this.leftDraggingStartPoint !== undefined;
+  }
+  startLeftGrabberDrag(e) {
+    const { clientX } = e;
+    this.leftDraggingStartPoint = clientX;
+  }
+
+  processLeftGrabberDrag(e) {
+    const { clientX } = e;
+    const dx = this.toPercents(this.leftDraggingStartPoint - clientX);
+    this.setBorders(this.leftBorder - dx, this.rightBorder);
+
+    this.leftDraggingStartPoint = clientX;
+  }
+
+  stopLeftGrabberDrag() {
+    this.leftDraggingStartPoint = undefined;
+  }
+
+  /** Right dragging */
+  isRightGrabberDragging() {
+    return this.rightDraggingStartPoint !== undefined;
+  }
+  startRightGrabberDrag(e) {
+    const { clientX } = e;
+    this.rightDraggingStartPoint = clientX;
+  }
+
+  processRightGrabberDrag(e) {
+    const { clientX } = e;
+    const dx = this.toPercents(this.rightDraggingStartPoint - clientX);
+    this.setBorders(this.leftBorder, this.rightBorder - dx);
+
+    this.rightDraggingStartPoint = clientX;
+  }
+
+  stopRightGrabberDrag() {
+    this.rightDraggingStartPoint = undefined;
   }
 
   /** Frame dragging */
   isFrameDragging() {
     return this.frameDraggingStartPoint !== undefined;
   }
+
   startFrameDrag(e) {
     const { clientX } = e;
-    console.log("start", clientX);
     this.frameDraggingStartPoint = clientX;
   }
 
   processFrameDrag(e) {
     const { clientX } = e;
-    const x = clientX - this.frameDraggingStartPoint;
+    const dx = this.toPercents(this.frameDraggingStartPoint - clientX);
+    this.setBorders(this.leftBorder - dx, this.rightBorder - dx);
 
-    if (x === 0) {
-      return;
-    }
-    this.setFrameByCenter(this.toPercents(Math.abs(clientX)));
     this.frameDraggingStartPoint = clientX;
   }
 
@@ -532,12 +601,16 @@ class DraggablePlot {
     this.setFrameByCenter(offsetInPercents);
   }
 
-  /** */
+  /******/
   setFrameByCenter(x) {
     const frameWidthInPercents = this.rightBorder - this.leftBorder;
+    this.setBorders(x - frameWidthInPercents / 2, x + frameWidthInPercents / 2);
+  }
 
-    let newLeftBorder = x - frameWidthInPercents / 2;
-    let newRightBorder = x + frameWidthInPercents / 2;
+  setBorders(leftBorder, rightBorder) {
+    let newLeftBorder = leftBorder;
+    let newRightBorder = rightBorder;
+    const frameWidthInPercents = this.rightBorder - this.leftBorder;
 
     if (newLeftBorder < 0) {
       newLeftBorder = 0;
@@ -566,7 +639,7 @@ class DraggablePlot {
   }
 
   toPercents(x) {
-    return Math.ceil((x * 100) / this.$container.offsetWidth);
+    return (x * 100) / this.$container.offsetWidth;
   }
 }
 

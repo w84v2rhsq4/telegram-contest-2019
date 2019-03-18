@@ -55,6 +55,17 @@ function initFrame() {
   });
 }
 
+function initThemeSwitcher() {
+  document.getElementById("theme-switcher").addEventListener("click", e => {
+    const nightMode = document.body.classList.contains("dark");
+    console.log("nightMode: ", nightMode);
+
+    e.target.innerText = `Switch to ${nightMode ? "Night Mode" : "Day Mode"}`;
+
+    document.body.classList.toggle("dark");
+  });
+}
+
 async function fetchTextureImg() {
   const image = new Image();
   image.src = "./green.png";
@@ -93,6 +104,7 @@ async function main() {
   console.log(data);
   insertButtons(data);
   initFrame();
+  initThemeSwitcher();
   buildPoints(data);
   init();
 

@@ -6,6 +6,30 @@ body {
 body {
   margin: 0 18px;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+body.dark {
+  background-color: #242f3e;
+}
+
+.theme-switcher__container {
+  width: 100%;
+  text-align: center;
+  position: absolute;
+  bottom: 0;
+  margin-bottom: 48px;
+}
+
+.theme-switcher {
+  color: #36a8f1;
+  background: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-size: 25px;
+  letter-spacing: 0.45px;
 }
 
 .buttons {
