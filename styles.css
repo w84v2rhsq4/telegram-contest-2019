@@ -14,6 +14,10 @@ body.dark {
   background-color: #242f3e;
 }
 
+.chart-container {
+  
+}
+
 .theme-switcher__container {
   width: 100%;
   text-align: center;
@@ -145,7 +149,7 @@ body.dark {
   width: 30px;
   height: 30px;
   border-radius: 15px;
-  background-image: url(checked.svg);
+  background-image: svg-load("./checked.svg");
   background-size: 17px 15px;
   background-repeat: no-repeat;
   background-position: 6px 9px;

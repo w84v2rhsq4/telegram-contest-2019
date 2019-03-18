@@ -1,0 +1,27 @@
+{
+  "name": "tg-contest",
+  "version": "1.0.0",
+  "main": "script.js",
+  "scripts": {
+    "start": "./node_modules/.bin/webpack --mode=development --watch",
+    "build": "./node_modules/.bin/webpack --mode=production"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/w84v2rhsq4/telegram-contest-2019.git"
+  },
+  "author": "w84v2rhsq4",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/w84v2rhsq4/telegram-contest-2019/issues"
+  },
+  "homepage": "https://github.com/w84v2rhsq4/telegram-contest-2019#readme",
+  "devDependencies": {
+    "terser-webpack-plugin": "^1.2.3",
+    "webpack-cli": "^3.3.0"
+  },
+  "dependencies": {
+    "webpack": "^4.29.6"
+  },
+  "description": ""
+}

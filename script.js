@@ -1,16 +1,18 @@
 import DraggablePlot from "./draggable-plot";
 
+import "./styles.css";
+
 var reflow = true;
 
 var canvas,
   gl,
   buffer,
+  buffer2,
   vertex_shader,
   fragment_shader,
   currentProgram,
   vertex_position,
-  timeLocation,
-  resolutionLocation,
+  colorLocation,
   parameters = {
     start_time: new Date().getTime(),
     time: 0,
@@ -18,7 +20,7 @@ var canvas,
     screenHeight: 0
   };
 
-let points;
+let points, points2;
 
 function insertButtons(data) {
   const { colors, names } = data[0];
@@ -68,7 +70,7 @@ function initThemeSwitcher() {
 
 async function fetchTextureImg() {
   const image = new Image();
-  image.src = "./green.png";
+  image.src = "./black.png";
   await new Promise(resolve => {
     image.onload = () => {
       createTexture(image);
@@ -105,7 +107,13 @@ async function main() {
   insertButtons(data);
   initFrame();
   initThemeSwitcher();
-  buildPoints(data);
+
+  const plotColumns = data[4].columns;
+  const y0 = plotColumns[1];
+  const y1 = plotColumns[2];
+  const x = plotColumns[0];
+  points = buildPoints(x, y0);
+  points2 = buildPoints(x, y1);
   init();
 
   await fetchTextureImg();
@@ -115,27 +123,27 @@ async function main() {
 
 main();
 
-function buildPoints(data) {
-  const columns = data[4].columns;
-  const y0 = columns[1];
-  const x = columns[0];
+function buildPoints(x, y) {
+  // const columns = data[4].columns;
+  // const y0 = columns[1];
+  // const x = columns[0];
 
-  const maxY = Math.max(...iterate(y0));
-  const minY = Math.min(...iterate(y0));
+  const maxY = Math.max(...iterate(y));
+  const minY = Math.min(...iterate(y));
   console.log("max", maxY);
   const maxX = Math.max(...iterate(x));
   const minX = Math.min(...iterate(x));
 
-  const resultArray = new Array(x.length - 1 + y0.length - 1);
+  const resultArray = new Array(x.length - 1 + y.length - 1);
   for (let i = 0; i < resultArray.length / 2; i += 2) {
     resultArray[i] = (2 * (x[i + 1] - minX)) / (maxX - minX) - 1;
-    resultArray[i + 1] = (2 * (y0[i + 1] - minY)) / (maxY - minY) - 1;
+    resultArray[i + 1] = (2 * (y[i + 1] - minY)) / (maxY - minY) - 1;
     if (isNaN(resultArray[i]) || isNaN(resultArray[i + 1])) {
       debugger;
     }
   }
 
-  points = resultArray;
+  // points = resultArray;
 
   function lerp(a, b, t) {
     const out = [];
@@ -157,24 +165,26 @@ function buildPoints(data) {
 
   // let step = 100;
   const new_points = [];
-  for (let i = 0; i < points.length - 2; i += 2) {
-    const a = [points[i], points[i + 1]];
-    const b = [points[i + 2], points[i + 3]];
+  for (let i = 0; i < resultArray.length - 2; i += 2) {
+    const a = [resultArray[i], resultArray[i + 1]];
+    const b = [resultArray[i + 2], resultArray[i + 3]];
 
     let step = distanceTo(a, b) * 1800;
     for (let j = 0; j < step; j++) {
       new_points.push(lerp(a, b, j / step));
     }
   }
-  points = new_points.flat();
-  console.log(points.length);
+  // points = new_points.flat();
+  // console.log(points.length);
+
+  return new_points.flat();
 }
 
 function init() {
   vertex_shader = document.getElementById("vs").textContent;
   fragment_shader = document.getElementById("fs").textContent;
 
-  canvas = document.querySelector("canvas");
+  canvas = document.querySelector("#overall-canvas");
 
   // Initialise WebGL
 
@@ -189,16 +199,18 @@ function init() {
   // Create Vertex buffer (2 triangles)
 
   buffer = gl.createBuffer();
+  buffer2 = gl.createBuffer();
 
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(points), gl.STATIC_DRAW);
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer2);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(points2), gl.STATIC_DRAW);
 
   // Create Program
 
   currentProgram = createProgram(vertex_shader, fragment_shader);
 
-  timeLocation = gl.getUniformLocation(currentProgram, "time");
-  resolutionLocation = gl.getUniformLocation(currentProgram, "resolution");
+  colorLocation = gl.getUniformLocation(currentProgram, "color");
 }
 
 function createProgram(vertex, fragment) {
@@ -278,7 +290,7 @@ function resizeCanvas(event) {
 window.onresize = resizeCanvas;
 
 function animate() {
-  if (true) {
+  if (reflow) {
     render();
   }
   requestAnimationFrame(animate);
@@ -305,11 +317,11 @@ function render() {
 
   // Set values to program variables
 
-  gl.uniform1f(timeLocation, parameters.time / 1000);
-  gl.uniform2f(
-    resolutionLocation,
-    parameters.screenWidth,
-    parameters.screenHeight
+  gl.uniform3f(
+    colorLocation,
+    0.9529411764705882,
+    0.2980392156862745,
+    0.26666666666666666
   );
   gl.uniform1i(gl.getUniformLocation(currentProgram, "colorTexture"), 0);
 
@@ -319,6 +331,13 @@ function render() {
   gl.vertexAttribPointer(vertex_position, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(vertex_position);
   gl.drawArrays(gl.POINTS, 0, points.length / 2);
+
+  gl.uniform3f(colorLocation, 0.24, 0.76, 0.25);
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer2);
+  gl.vertexAttribPointer(vertex_position, 2, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(vertex_position);
+  gl.drawArrays(gl.POINTS, 0, points2.length / 2);
+  console.log(points, points2);
   gl.disableVertexAttribArray(vertex_position);
   reflow = false;
 }

@@ -3,9 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <title>Followers</title>
-    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <div class="chart-container">
+      <canvas id="chart-canvas"></canvas>
+    </div>
     <div id="frame-changing-results"></div>
     <div id="overall" class="overall">
       <div id="left-overlay" class="overlay overlay-left"></div>
@@ -14,7 +16,7 @@
         <div id="left-grabber" class="grabber grabber-left"></div>
         <div id="right-grabber" class="grabber grabber-right"></div>
       </div>
-      <canvas></canvas>
+      <canvas id="overall-canvas"></canvas>
     </div>
     <div id="buttons" class="buttons"></div>
     <div class="theme-switcher__container">
@@ -31,19 +33,14 @@
       }
     </script>
     <script id="fs" type="x-shader/fragment">
-      uniform float time;
-      uniform vec2 resolution;
+      uniform vec3 color;
       uniform sampler2D colorTexture;
       void main( void ) {
         vec4 baseColor = texture2D(colorTexture, gl_PointCoord.xy);
 
-        if (baseColor.a < 0.5) {
-          //discard;
-        }
-
-        gl_FragColor = baseColor;
+        gl_FragColor = vec4(baseColor.rgb+color, baseColor.a);
       }
     </script>
-    <script src="dist/bundle.js" type="text/javascript"></script>
+    <script src="dist/main.js" type="text/javascript"></script>
   </body>
 </html>
