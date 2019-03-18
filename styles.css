@@ -32,6 +32,7 @@ body {
   position: relative;
   height: 58px;
   margin-bottom: 24px;
+  width: 100%;
 }
 
 .overall > canvas {
@@ -39,31 +40,53 @@ body {
   top: 3px;
   width: 100%;
   height: 52px;
+  pointer-events: none;
 }
 
 .overlay {
   position: absolute;
   height: 58px;
-  background: rgb(86, 130, 163, 0.05);
+  background: rgb(86, 130, 163, 0.15);
+  z-index: 1;
+}
+
+.overlay::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  opacity: 0.7;
 }
 
 .overlay-left {
   left: 0;
-  width: 40%;
 }
 
 .overlay-right {
   right: 0;
-  width: 40%;
 }
 
 .frame {
   position: absolute;
-  left: 40%;
-  width: 20%;
   border: solid rgb(86, 130, 163, 0.2);
-  border-width: 2px 0;
-  height: 54px;
+  border-width: 1px 0;
+  height: 56px;
+  z-index: 1;
+}
+
+.frame::after {
+  content: "";
+  height: 56px;
+  background: #fff;
+  opacity: 1;
+  z-index: 999999;
+  position: absolute;
+  top: 0px;
+  left: 6px;
+  opacity: 0.2;
+  right: 6px;
+  bottom: 1px;
 }
 
 .grabber {
@@ -71,9 +94,18 @@ body {
   width: 6px;
   position: absolute;
   right: 0;
-  height: 54px;
-  background: rgb(86, 130, 163, 0.2);
+  height: 56px;
+  background: rgb(86, 130, 163, 0.35);
   z-index: 1;
+}
+
+.grabber::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  opacity: 0.4;
 }
 .grabber-left {
   left: 0;

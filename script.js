@@ -1,3 +1,5 @@
+import DraggablePlot from "./draggable-plot";
+
 var reflow = true;
 
 var canvas,
@@ -41,9 +43,21 @@ function insertButtons(data) {
   });
 }
 
+function initFrame() {
+  const draggablePlot = new DraggablePlot({
+    leftBorder: 60,
+    rightBorder: 80,
+    frameChangeCallback: (leftBorder, rightBorder) => {
+      document.getElementById(
+        "frame-changing-results"
+      ).innerHTML = `left ${leftBorder} right ${rightBorder}`;
+    }
+  });
+}
+
 async function fetchTextureImg() {
   const image = new Image();
-  image.src = "./circle.png";
+  image.src = "./green.png";
   await new Promise(resolve => {
     image.onload = () => {
       createTexture(image);
@@ -78,6 +92,7 @@ async function main() {
   const data = await fetchJson();
   console.log(data);
   insertButtons(data);
+  initFrame();
   buildPoints(data);
   init();
 
@@ -135,7 +150,7 @@ function buildPoints(data) {
     const b = [points[i + 2], points[i + 3]];
 
     let step = distanceTo(a, b) * 1800;
-    for (j = 0; j < step; j++) {
+    for (let j = 0; j < step; j++) {
       new_points.push(lerp(a, b, j / step));
     }
   }
