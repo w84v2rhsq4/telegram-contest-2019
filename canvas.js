@@ -1,10 +1,24 @@
 class Canvas {
-  constructor({ $canvas, vertexShader, fragmentShader, data, textureImg }) {
+  constructor({
+    $canvas,
+    vertexShader,
+    fragmentShader,
+    data,
+    textureImg,
+    viewMatrix,
+    projectionMatrix
+  }) {
     this.$canvas = $canvas;
     this.vertexShader = vertexShader;
     this.fragmentShader = fragmentShader;
     this.data = data;
     this.textureImg = textureImg;
+    this.viewMatrix = viewMatrix;
+    this.projectionMatrix = projectionMatrix;
+
+    this.colorLocation = undefined;
+    this.viewMatrixLocation = undefined;
+    this.projectionMatrixLocation = undefined;
 
     this.gl = undefined;
     this.buffers = [];
@@ -39,6 +53,18 @@ class Canvas {
     }
   }
 
+  setProjection(newProjectionMatrix) {
+    this.projectionMatrix = newProjectionMatrix;
+
+    this.redraw = true;
+  }
+
+  setView(newViewMatrix) {
+    this.viewMatrix = newViewMatrix;
+
+    this.redraw = true;
+  }
+
   createProgram() {
     const { gl, vertexShader, fragmentShader } = this;
     const program = gl.createProgram();
@@ -60,6 +86,11 @@ class Canvas {
 
     this.program = program;
     this.colorLocation = gl.getUniformLocation(program, "color");
+    this.viewMatrixLocation = gl.getUniformLocation(this.program, "viewMatrix");
+    this.projectionMatrixLocation = gl.getUniformLocation(
+      this.program,
+      "projectionMatrix"
+    );
   }
 
   createShader(src, type) {
@@ -116,6 +147,12 @@ class Canvas {
 
     // Set values to program variables
     gl.uniform1i(gl.getUniformLocation(program, "colorTexture"), 0);
+    gl.uniformMatrix4fv(this.viewMatrixLocation, false, this.viewMatrix);
+    gl.uniformMatrix4fv(
+      this.projectionMatrixLocation,
+      false,
+      this.projectionMatrix
+    );
 
     // Render geometry
     for (let i = 0; i < data.length; i++) {
