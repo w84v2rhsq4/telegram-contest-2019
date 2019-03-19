@@ -2,19 +2,11 @@ import DraggablePlot from "./draggable-plot";
 import Canvas from "./canvas";
 
 import { renderButtons, renderThemeSwitcher } from "./ui";
-import { findPerspective, findExtremeValues, generatePoints } from "./maths";
+import { findExtremeValues, generatePoints } from "./maths";
 
 import "./styles.css";
 
 const dataSetIndex = 1;
-
-//prettier-ignore
-const identityMatrix = [
-  1, 0, 0, 0, 
-  0, 1, 0, 0,
-  0, 0, 1, 0,
-  0, 0, 0, 1 
-];
 
 async function fetchTextureImg() {
   const image = new Image();
@@ -33,18 +25,9 @@ async function fetchJson() {
 
 class Application {
   constructor() {
-    this.viewScaleY = 1;
-    this.viewTranslateX = 0;
-    this.viewTranslateY = 0;
-    this.viewTranslateZ = -1;
-    this.aspect = 0.25;
-
     this.textureImg = undefined;
 
     this.points = [];
-
-    this.viewMatrix = undefined;
-    this.projectionMatrix = undefined;
 
     this.smallCanvas = undefined;
     this.largeCanvas = undefined;
@@ -59,11 +42,11 @@ class Application {
     ).innerHTML = `left ${leftBorder} right ${rightBorder}`;
     console.log("frame change");
 
-    this.viewTranslateX += 0.1;
-    this.setCameraView({
-      viewTranslateX: this.viewTranslateX
-    });
-    this.largeCanvas.setView(this.viewMatrix);
+    this.largeCanvas
+      .setCamera({
+        viewTranslateX: this.largeCanvas.viewTranslateX + 0.1
+      })
+      .update();
   }
 
   renderDraggablePlot() {
@@ -74,55 +57,11 @@ class Application {
     });
   }
 
-  setCameraView({
-    viewScaleY = this.viewScaleY,
-    viewTranslateX = this.viewTranslateX,
-    viewTranslateY = this.viewTranslateY,
-    viewTranslateZ = this.viewTranslateZ
-  }) {
-    console.log(viewScaleY);
-    console.log(viewTranslateX, viewTranslateY, viewTranslateZ);
-    // prettier-ignore
-    const viewMatrix = new Float32Array([
-      1, 0, 0, 0,
-      0, viewScaleY, 0, 0,
-      0, 0, 1, 0,
-      viewTranslateX, viewTranslateY, viewTranslateZ, 1 // x y z -0.5 .. 0.5
-    ]);
-
-    this.viewMatrix = viewMatrix;
-  }
-
-  setCameraProjection({ aspect }) {
-    const projectionMatrix = findPerspective(
-      new Float32Array(identityMatrix),
-      Math.PI / 2,
-      aspect, // 0 .. 1
-      0.01,
-      10
-    );
-
-    this.projectionMatrix = projectionMatrix;
-  }
-
-  initCameraView() {
-    this.setCameraView({
-      viewScaleY: this.viewScaleY,
-      viewTranslateX: this.viewTranslateX,
-      viewTranslateY: this.viewTranslateY,
-      viewTranslateZ: this.viewTranslateZ
-    });
-
-    this.setCameraProjection({ aspect: this.aspect });
-  }
-
-  initCanvas({ $element, projectionMatrix, viewMatrix }) {
+  initCanvas($canvas) {
     return new Canvas({
-      $canvas: $element,
+      $canvas,
       points: this.points,
-      textureImg: this.textureImg,
-      projectionMatrix,
-      viewMatrix
+      textureImg: this.textureImg
     });
   }
 
@@ -149,19 +88,20 @@ class Application {
 
     this.initPointsForAllPlots(data);
 
-    this.initCameraView();
+    this.smallCanvas = this.initCanvas(
+      document.querySelector("#overall-canvas")
+    );
 
-    this.smallCanvas = this.initCanvas({
-      $element: document.querySelector("#overall-canvas"),
-      projectionMatrix: new Float32Array(identityMatrix),
-      viewMatrix: new Float32Array(identityMatrix)
-    });
-
-    this.largeCanvas = this.initCanvas({
-      $element: document.querySelector("#chart-canvas"),
-      projectionMatrix: this.projectionMatrix,
-      viewMatrix: this.viewMatrix
-    });
+    this.largeCanvas = this.initCanvas(document.querySelector("#chart-canvas"));
+    this.largeCanvas
+      .setCamera({
+        viewScaleY: 1,
+        viewTranslateX: 0,
+        viewTranslateY: 0,
+        viewTranslateZ: -1,
+        aspect: 0.25
+      })
+      .update();
   }
 }
 
