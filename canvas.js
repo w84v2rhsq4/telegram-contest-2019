@@ -1,17 +1,17 @@
+
+import vertexShader from "./src/shaders/points.vert";
+import fragmentShader from "./src/shaders/points.frag";
+
 class Canvas {
   constructor({
     $canvas,
-    vertexShader,
-    fragmentShader,
-    data,
+    points,
     textureImg,
     viewMatrix,
     projectionMatrix
   }) {
     this.$canvas = $canvas;
-    this.vertexShader = vertexShader;
-    this.fragmentShader = fragmentShader;
-    this.data = data;
+    this.points = points;
     this.textureImg = textureImg;
     this.viewMatrix = viewMatrix;
     this.projectionMatrix = projectionMatrix;
@@ -45,11 +45,11 @@ class Canvas {
   }
 
   initVertexBuffers() {
-    const { gl, data, buffers } = this;
-    for (let i = 0; i < data.length; i++) {
+    const { gl, points, buffers } = this;
+    for (let i = 0; i < points.length; i++) {
       buffers[i] = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, buffers[i]);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data[i]), gl.STATIC_DRAW);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(points[i]), gl.STATIC_DRAW);
     }
   }
 
@@ -61,12 +61,13 @@ class Canvas {
 
   setView(newViewMatrix) {
     this.viewMatrix = newViewMatrix;
+    console.log(newViewMatrix);
 
     this.redraw = true;
   }
 
   createProgram() {
-    const { gl, vertexShader, fragmentShader } = this;
+    const { gl } = this;
     const program = gl.createProgram();
 
     const vs = this.createShader(vertexShader, gl.VERTEX_SHADER);
@@ -126,7 +127,7 @@ class Canvas {
   }
 
   render() {
-    const { gl, program, data } = this;
+    const { gl, program, points } = this;
     if (!program) {
       return;
     }
@@ -155,17 +156,17 @@ class Canvas {
     );
 
     // Render geometry
-    for (let i = 0; i < data.length; i++) {
-      this.gl.uniform3f(
+    for (let i = 0; i < points.length; i++) {
+      gl.uniform3f(
         this.colorLocation,
         0.9529411764705882,
         0.2980392156862745,
         0.26666666666666666
       );
-      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers[i]);
-      this.gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-      this.gl.enableVertexAttribArray(0);
-      this.gl.drawArrays(this.gl.POINTS, 0, data[i].length / 2);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers[i]);
+      gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(0);
+      gl.drawArrays(gl.POINTS, 0, points[i].length / 2);
     }
 
     this.redraw = false;
