@@ -11,14 +11,17 @@ const identityMatrix = [
 ];
 
 class Canvas {
-  constructor({ $canvas, points, textureImg }) {
+  constructor({ $canvas, points, plotColors, textureImg, thickness }) {
     this.$canvas = $canvas;
     this.points = points;
     this.textureImg = textureImg;
+    this.thickness = thickness;
+    this.plotColors = plotColors;
 
     this.colorLocation = undefined;
     this.viewMatrixLocation = undefined;
     this.projectionMatrixLocation = undefined;
+    this.thicknessLocation = undefined;
 
     this.gl = undefined;
     this.buffers = [];
@@ -116,11 +119,12 @@ class Canvas {
 
     this.program = program;
     this.colorLocation = gl.getUniformLocation(program, "color");
-    this.viewMatrixLocation = gl.getUniformLocation(this.program, "viewMatrix");
+    this.viewMatrixLocation = gl.getUniformLocation(program, "viewMatrix");
     this.projectionMatrixLocation = gl.getUniformLocation(
       this.program,
       "projectionMatrix"
     );
+    this.thicknessLocation = gl.getUniformLocation(program, "thickness");
   }
 
   createShader(src, type) {
@@ -187,15 +191,11 @@ class Canvas {
       false,
       this.projectionMatrix
     );
+    gl.uniform1f(this.thicknessLocation, this.thickness);
 
     // Render geometry
     for (let i = 0; i < points.length; i++) {
-      gl.uniform3f(
-        this.colorLocation,
-        0.9529411764705882,
-        0.2980392156862745,
-        0.26666666666666666
-      );
+      gl.uniform3f(this.colorLocation, ...this.plotColors[i]);
       gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers[i]);
       gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
       gl.enableVertexAttribArray(0);

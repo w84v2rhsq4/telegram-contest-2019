@@ -6,10 +6,10 @@ const leftOverlayId = "left-overlay";
 const rightOverlayId = "right-overlay";
 
 class DraggablePlot {
-  constructor({ leftBorder, rightBorder, frameChangeCallback }) {
+  constructor({ leftBorder, rightBorder, frameTranslateCallback }) {
     this.leftBorder = leftBorder;
     this.rightBorder = rightBorder;
-    this.frameChangeCallback = frameChangeCallback;
+    this.frameTranslateCallback = frameTranslateCallback;
 
     this.frameDraggingStartPoint = undefined;
     this.leftDraggingStartPoint = undefined;
@@ -41,9 +41,9 @@ class DraggablePlot {
         this.handleMouseMove(event);
         break;
       }
-      //   case "mouseleave": {
-      //     break;
-      //   }
+      // case "mouseleave": {
+      //   break;
+      // }
       case "mousedown": {
         this.handleMouseDown(event);
         break;
@@ -128,6 +128,7 @@ class DraggablePlot {
   isLeftGrabberDragging() {
     return this.leftDraggingStartPoint !== undefined;
   }
+
   startLeftGrabberDrag(e) {
     const { clientX } = e;
     this.leftDraggingStartPoint = clientX;
@@ -137,7 +138,6 @@ class DraggablePlot {
     const { clientX } = e;
     const dx = this.toPercents(this.leftDraggingStartPoint - clientX);
     this.setBorders(this.leftBorder - dx, this.rightBorder);
-    this.frameChangeCallback(this.leftBorder, this.rightBorder);
 
     this.leftDraggingStartPoint = clientX;
   }
@@ -150,6 +150,7 @@ class DraggablePlot {
   isRightGrabberDragging() {
     return this.rightDraggingStartPoint !== undefined;
   }
+
   startRightGrabberDrag(e) {
     const { clientX } = e;
     this.rightDraggingStartPoint = clientX;
@@ -159,7 +160,6 @@ class DraggablePlot {
     const { clientX } = e;
     const dx = this.toPercents(this.rightDraggingStartPoint - clientX);
     this.setBorders(this.leftBorder, this.rightBorder - dx);
-    this.frameChangeCallback(this.leftBorder, this.rightBorder);
 
     this.rightDraggingStartPoint = clientX;
   }
@@ -180,9 +180,8 @@ class DraggablePlot {
 
   processFrameDrag(e) {
     const { clientX } = e;
-    const dx = this.toPercents(this.frameDraggingStartPoint - clientX);
+    let dx = this.toPercents(this.frameDraggingStartPoint - clientX);
     this.setBorders(this.leftBorder - dx, this.rightBorder - dx);
-    this.frameChangeCallback(this.leftBorder, this.rightBorder);
 
     this.frameDraggingStartPoint = clientX;
   }
@@ -199,7 +198,6 @@ class DraggablePlot {
       offsetInPercents += this.rightBorder;
     }
     this.setFrameByCenter(offsetInPercents);
-    this.frameChangeCallback(this.leftBorder, this.rightBorder);
   }
 
   /******/
@@ -221,6 +219,7 @@ class DraggablePlot {
       newLeftBorder = 100 - frameWidthInPercents;
     }
 
+    this.frameTranslateCallback(newLeftBorder, newRightBorder);
     this.setLeftBorder(newLeftBorder);
     this.setRightBorder(newRightBorder);
   }
@@ -229,14 +228,12 @@ class DraggablePlot {
     this.$leftOverlay.style["width"] = `${percents}%`;
     this.$frame.style["left"] = `${percents}%`;
     this.leftBorder = percents;
-    //  this.frameChangeCallback(this.leftBorder, this.rightBorder);
   }
 
   setRightBorder(percents) {
     this.$rightOverlay.style["width"] = `${100 - percents}%`;
     this.$frame.style["width"] = `${percents - this.leftBorder}%`;
     this.rightBorder = percents;
-    //  this.frameChangeCallback(this.leftBorder, this.rightBorder);
   }
 
   toPercents(x) {

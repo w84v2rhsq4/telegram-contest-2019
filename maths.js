@@ -76,37 +76,44 @@ function* iterate(arr) {
 function findExtremeValues(plots) {
   const maxX = Math.max(...iterate(plots[0]));
   const minX = Math.min(...iterate(plots[0]));
-  const yMaxValues = [];
-  const yMinValues = [];
-  for (let i = 1; i < plots.length; i++) {
-    yMaxValues.push(Math.max(...iterate(plots[i])));
-    yMinValues.push(Math.min(...iterate(plots[i])));
-  }
-
   const extremeValuesMap = {
     x: {
       max: maxX,
       min: minX
-    },
-    y: {
-      max: Math.max(...yMaxValues),
-      min: Math.min(...yMinValues)
     }
+  };
+  const yMaxValues = [];
+  const yMinValues = [];
+  for (let i = 1; i < plots.length; i++) {
+    const maxYi = Math.max(...iterate(plots[i]));
+    const minYi = Math.min(...iterate(plots[i]));
+    // debugger;
+    extremeValuesMap[plots[i][0]] = {
+      max: maxYi,
+      min: minYi
+    };
+    yMaxValues.push(maxYi);
+    yMinValues.push(minYi);
+  }
+
+  extremeValuesMap.y = {
+    max: Math.max(...yMaxValues),
+    min: Math.min(...yMinValues)
   };
   return extremeValuesMap;
 }
 
 function generatePoints(x, y, extremeValues) {
   const maxY = extremeValues.y.max; //Math.max(...iterate(y));
-  const minY = extremeValues.y.min; // Math.min(...iterate(y));
-  console.log("max", maxY);
+  // const minY = extremeValues.y.min; // Math.min(...iterate(y));
+//   console.log("max", maxY);
   const maxX = extremeValues.x.max; // Math.max(...iterate(x));
   const minX = extremeValues.x.min; //Math.min(...iterate(x));
 
   const resultArray = new Array(x.length - 1 + y.length - 1);
   for (let i = 0; i < resultArray.length / 2; i += 2) {
     resultArray[i] = (2 * (x[i + 1] - minX)) / (maxX - minX) - 1;
-    resultArray[i + 1] = (2 * (y[i + 1] - minY)) / (maxY - minY) - 1;
+    resultArray[i + 1] = (2 * (y[i + 1] - 0)) / (maxY - 0) - 1;
     if (isNaN(resultArray[i]) || isNaN(resultArray[i + 1])) {
       debugger;
     }
@@ -117,7 +124,7 @@ function generatePoints(x, y, extremeValues) {
     const a = [resultArray[i], resultArray[i + 1]];
     const b = [resultArray[i + 2], resultArray[i + 3]];
 
-    let step = distanceTo(a, b) * 1800;
+    let step = distanceTo(a, b) * 4000;
     for (let j = 0; j < step; j++) {
       points.push(lerp(a, b, j / step));
     }
@@ -126,4 +133,22 @@ function generatePoints(x, y, extremeValues) {
   return points.flat();
 }
 
-export { findPerspective, lerp, distanceTo, findExtremeValues, generatePoints };
+function hexToRgb(hex) {
+   return hex.replace(/^#?([a-f\d])([a-f\d])([a-f\d])$/i
+    ,(m, r, g, b) => '#' + r + r + g + g + b + b)
+.substring(1).match(/.{2}/g)
+.map(x => parseInt(x, 16));
+}
+
+function normalizedHexToRgb(hex) {
+    return hexToRgb(hex).map(c=> c/255);
+}
+
+export {
+  findPerspective,
+  lerp,
+  distanceTo,
+  findExtremeValues,
+  generatePoints,
+  normalizedHexToRgb
+};

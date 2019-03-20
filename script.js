@@ -2,11 +2,11 @@ import DraggablePlot from "./draggable-plot";
 import Canvas from "./canvas";
 
 import { renderButtons, renderThemeSwitcher } from "./ui";
-import { findExtremeValues, generatePoints } from "./maths";
+import { findExtremeValues, generatePoints, normalizedHexToRgb } from "./maths";
 
 import "./styles.css";
 
-const dataSetIndex = 1;
+const dataSetIndex = 4;
 
 async function fetchTextureImg() {
   const image = new Image();
@@ -23,58 +23,84 @@ async function fetchJson() {
   return await response.json();
 }
 
+function normalizeValue({ value, a, b, minValue, maxValue }) {
+  return ((b - a) * (value - minValue)) / (maxValue - minValue) + a;
+}
+
 class Application {
   constructor() {
     this.textureImg = undefined;
 
     this.points = [];
+    this.plotColors = [];
 
     this.smallCanvas = undefined;
     this.largeCanvas = undefined;
 
-    this.handleFrameChange = this.handleFrameChange.bind(this);
+    this.left = 20;
+    this.right = 80;
+
+    this.extremeValuesMap = {};
+
+    this.handleFrameTranslate = this.handleFrameTranslate.bind(this);
   }
 
-  handleFrameChange(leftBorder, rightBorder) {
-    console.log("callback", leftBorder, rightBorder);
-    document.getElementById(
-      "frame-changing-results"
-    ).innerHTML = `left ${leftBorder} right ${rightBorder}`;
-    console.log("frame change");
+  handleFrameTranslate(left, right) {
+    this.left = left;
+    this.right = right;
 
+    const width = right - left;
+    const value =
+      -1 *
+      normalizeValue({
+        value: left + width / 2,
+        a: -(1 - width / 100),
+        b: 1 - width / 100,
+        minValue: width / 2,
+        maxValue: 100 - width / 2
+      });
     this.largeCanvas
       .setCamera({
-        viewTranslateX: this.largeCanvas.viewTranslateX + 0.1
+        viewTranslateX: value,
+        aspect: (this.right - this.left) / 100
       })
       .update();
   }
 
   renderDraggablePlot() {
     new DraggablePlot({
-      leftBorder: 60,
-      rightBorder: 80,
-      frameChangeCallback: this.handleFrameChange
+      leftBorder: this.left,
+      rightBorder: this.right,
+      frameTranslateCallback: this.handleFrameTranslate
     });
   }
 
-  initCanvas($canvas) {
+  initCanvas($canvas, thickness) {
     return new Canvas({
       $canvas,
       points: this.points,
-      textureImg: this.textureImg
+      textureImg: this.textureImg,
+      thickness,
+      plotColors: this.plotColors
     });
   }
 
-  initPointsForAllPlots({ columns }) {
+  initPointsForAllPlots({ columns, colors }) {
     const extremeValues = findExtremeValues(columns);
 
     const x = columns[0];
     const points = [];
+    const plotColors = [];
     for (let i = 1; i < columns.length; i++) {
-      points.push(generatePoints(x, columns[i], extremeValues));
+      const column = columns[i];
+      points.push(generatePoints(x, column, extremeValues));
+      const name = column[0];
+      plotColors.push(normalizedHexToRgb(colors[name]));
     }
 
     this.points = points;
+    this.plotColors = plotColors;
+    this.extremeValuesMap = extremeValues;
   }
 
   async render() {
@@ -89,17 +115,23 @@ class Application {
     this.initPointsForAllPlots(data);
 
     this.smallCanvas = this.initCanvas(
-      document.querySelector("#overall-canvas")
+      document.querySelector("#overall-canvas"),
+      2.5
     );
 
-    this.largeCanvas = this.initCanvas(document.querySelector("#chart-canvas"));
+    //  const maxY = this.extremeValuesMap.y.max;
+
+    this.largeCanvas = this.initCanvas(
+      document.querySelector("#chart-canvas"),
+      4.0
+    );
     this.largeCanvas
       .setCamera({
-        viewScaleY: 1,
+        viewScaleY: 1, //1.6,
         viewTranslateX: 0,
-        viewTranslateY: 0,
+        viewTranslateY: 0, //0.6,
         viewTranslateZ: -1,
-        aspect: 0.25
+        aspect: (this.right - this.left) / 100
       })
       .update();
   }

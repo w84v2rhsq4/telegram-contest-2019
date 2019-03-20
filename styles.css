@@ -8,6 +8,7 @@ body {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  user-select: none;
 }
 
 body.dark {
@@ -18,15 +19,21 @@ body.dark {
   width: 100%;
   height: 500px;
   pointer-events: none;
+  border: 1px solid black;
 }
 
 .theme-switcher__container {
   width: 100%;
   text-align: center;
-  position: absolute;
+  position: fixed;
   bottom: 0;
-  margin-bottom: 48px;
+  /* margin-bottom: 48px; */
   left: 0;
+
+  padding: 24px 0;
+  background: white;
+  z-index: 999;
+  box-shadow: 1px -1px 9px rgba(0, 0, 0, 0.2);
 }
 
 .theme-switcher {
@@ -140,11 +147,11 @@ body.dark {
 }
 .grabber-left {
   left: 0;
-  cursor: w-resize;
+  /* cursor: w-resize;*/
 }
 .grabber-right {
-  right: 0;
-  cursor: e-resize;
+  right: 0; /*
+  cursor: e-resize;*/
 }
 
 .tick-icon {
