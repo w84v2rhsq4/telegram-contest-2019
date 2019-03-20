@@ -1,7 +1,7 @@
-function renderButtons(data) {
+function renderButtons({ plotId, data }) {
   const { colors, names } = data;
 
-  const buttonsContainer = document.getElementById("buttons");
+  const buttonsContainer = document.getElementById(`buttons-${plotId}`);
   const plots = Object.keys(names);
   for (let i = 0; i < plots.length; i++) {
     const plot = plots[i];

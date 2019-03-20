@@ -11,9 +11,6 @@ body {
 .main-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  max-height: 100vh;
-  overflow: hidden;
 }
 
 body.dark {
@@ -28,11 +25,10 @@ body.dark {
 }
 
 .content-container {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  overflow-y: scroll;
-  overflow-x: hidden;
+}
+
+.plot-container {
+  margin: 0 18px;
 }
 
 .theme-switcher-container {
@@ -40,7 +36,6 @@ body.dark {
   justify-content: center;
   padding: 24px 0;
   background: white;
-  box-shadow: 1px -1px 9px rgba(0, 0, 0, 0.2);
 }
 
 .dark .theme-switcher-container {
@@ -75,6 +70,7 @@ body.dark {
   align-items: center;
   cursor: pointer;
   user-select: none;
+  margin-bottom: 10px;
 }
 
 .overall {

@@ -1,12 +1,12 @@
-const containerId = "overall";
-const leftGrabberId = "left-grabber";
-const rightGrabberId = "right-grabber";
-const frameId = "frame";
-const leftOverlayId = "left-overlay";
-const rightOverlayId = "right-overlay";
-
 class DraggablePlot {
-  constructor({ leftBorder, rightBorder, frameTranslateCallback }) {
+  constructor({ plotId, leftBorder, rightBorder, frameTranslateCallback }) {
+    this.containerId = `overall-${plotId}`;
+    this.leftGrabberId = `left-grabber-${plotId}`;
+    this.rightGrabberId = `right-grabber-${plotId}`;
+    this.frameId = `frame-${plotId}`;
+    this.leftOverlayId = `left-overlay-${plotId}`;
+    this.rightOverlayId = `right-overlay-${plotId}`;
+
     this.leftBorder = leftBorder;
     this.rightBorder = rightBorder;
     this.frameTranslateCallback = frameTranslateCallback;
@@ -15,12 +15,12 @@ class DraggablePlot {
     this.leftDraggingStartPoint = undefined;
     this.leftDraggingStartPoint = undefined;
 
-    this.$container = document.getElementById(containerId);
-    this.$leftGrabber = document.getElementById(leftGrabberId);
-    this.$rightGrabber = document.getElementById(rightGrabberId);
-    this.$frame = document.getElementById(frameId);
-    this.$leftOverlay = document.getElementById(leftOverlayId);
-    this.$rightOverlay = document.getElementById(rightOverlayId);
+    this.$container = document.getElementById(this.containerId);
+    this.$leftGrabber = document.getElementById(this.leftGrabberId);
+    this.$rightGrabber = document.getElementById(this.rightGrabberId);
+    this.$frame = document.getElementById(this.frameId);
+    this.$leftOverlay = document.getElementById(this.leftOverlayId);
+    this.$rightOverlay = document.getElementById(this.rightOverlayId);
 
     this.$container.addEventListener("click", this);
     this.$container.addEventListener("mousedown", this);
@@ -59,6 +59,7 @@ class DraggablePlot {
     const {
       target: { id: targetId }
     } = e;
+    const { leftOverlayId, rightOverlayId } = this;
     switch (targetId) {
       //   case leftGrabberId: {
       //     break;
@@ -84,6 +85,7 @@ class DraggablePlot {
     const {
       target: { id: targetId }
     } = e;
+    const { leftGrabberId, rightGrabberId, frameId } = this;
     switch (targetId) {
       case leftGrabberId: {
         this.startLeftGrabberDrag(e);
