@@ -2,7 +2,7 @@ const TerserPlugin = require("terser-webpack-plugin");
 const path = require("path");
 
 const config = {
-  entry: path.join(__dirname, `./script.js`),
+  entry: path.join(__dirname, `./src/script.js`),
   output: {
     path: path.join(__dirname, "/dist")
   },

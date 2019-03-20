@@ -1,5 +1,5 @@
-import vertexShader from "./src/shaders/points.vert";
-import fragmentShader from "./src/shaders/points.frag";
+import vertexShader from "./shaders/points.vert";
+import fragmentShader from "./shaders/points.frag";
 
 import { findPerspective } from "./maths";
 //prettier-ignore
