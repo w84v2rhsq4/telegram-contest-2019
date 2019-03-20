@@ -4,11 +4,16 @@ body {
 }
 
 body {
-  margin: 0 18px;
   box-sizing: border-box;
+  user-select: none;
+}
+
+.main-container {
   display: flex;
   flex-direction: column;
-  user-select: none;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
 }
 
 body.dark {
@@ -22,18 +27,24 @@ body.dark {
   border: 1px solid black;
 }
 
-.theme-switcher__container {
-  width: 100%;
-  text-align: center;
-  position: fixed;
-  bottom: 0;
-  /* margin-bottom: 48px; */
-  left: 0;
+.content-container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
 
+.theme-switcher-container {
+  display: flex;
+  justify-content: center;
   padding: 24px 0;
   background: white;
-  z-index: 999;
   box-shadow: 1px -1px 9px rgba(0, 0, 0, 0.2);
+}
+
+.dark .theme-switcher-container {
+  background-color: #242f3e;
 }
 
 .theme-switcher {
