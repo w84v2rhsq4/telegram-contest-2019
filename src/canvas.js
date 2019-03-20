@@ -11,12 +11,20 @@ const identityMatrix = [
 ];
 
 class Canvas {
-  constructor({ $canvas, points, plotColors, textureImg, thickness }) {
+  constructor({
+    $canvas,
+    points,
+    plotColors,
+    textureImg,
+    thickness,
+    plotsVisibility
+  }) {
     this.$canvas = $canvas;
     this.points = points;
     this.textureImg = textureImg;
     this.thickness = thickness;
     this.plotColors = plotColors;
+    this.plotsVisibility = plotsVisibility;
 
     this.colorLocation = undefined;
     this.viewMatrixLocation = undefined;
@@ -82,6 +90,11 @@ class Canvas {
     this.viewMatrix = viewMatrix;
     this.projectionMatrix = projectionMatrix;
 
+    return this;
+  }
+
+  setVisibility(index, value) {
+    this.plotsVisibility[index] = value;
     return this;
   }
 
@@ -195,6 +208,9 @@ class Canvas {
 
     // Render geometry
     for (let i = 0; i < points.length; i++) {
+      if (!this.plotsVisibility[i]) {
+        continue;
+      }
       gl.uniform3f(this.colorLocation, ...this.plotColors[i]);
       gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers[i]);
       gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);

@@ -16,6 +16,7 @@ class Plot {
 
     this.points = [];
     this.plotColors = [];
+    this.plotsVisibility = [];
 
     this.smallCanvas = undefined;
     this.largeCanvas = undefined;
@@ -26,6 +27,7 @@ class Plot {
     this.extremeValuesMap = {};
 
     this.handleFrameTranslate = this.handleFrameTranslate.bind(this);
+    this.handleVisibilityToggle = this.handleVisibilityToggle.bind(this);
   }
 
   handleFrameTranslate(left, right) {
@@ -50,6 +52,11 @@ class Plot {
       .update();
   }
 
+  handleVisibilityToggle(index, isVisible) {
+    this.largeCanvas.setVisibility(index, isVisible).update();
+    this.smallCanvas.setVisibility(index, isVisible).update();
+  }
+
   renderDraggablePlot() {
     const { id, left, right, handleFrameTranslate } = this;
     new DraggablePlot({
@@ -66,35 +73,45 @@ class Plot {
       points: this.points,
       textureImg: this.textureImg,
       thickness,
-      plotColors: this.plotColors
+      plotColors: this.plotColors,
+      plotsVisibility: this.plotsVisibility
     });
   }
 
-  initPointsForAllPlots({ columns, colors }) {
+  initPlotsData({ columns, colors }) {
     const extremeValues = findExtremeValues(columns);
 
     const x = columns[0];
     const points = [];
     const plotColors = [];
+    const visibility = [];
     for (let i = 1; i < columns.length; i++) {
       const column = columns[i];
       points.push(generatePoints(x, column, extremeValues));
       const name = column[0];
       plotColors.push(normalizedHexToRgb(colors[name]));
+      visibility.push(true);
     }
 
     this.points = points;
     this.plotColors = plotColors;
     this.extremeValuesMap = extremeValues;
+    this.plotsVisibility = visibility;
   }
 
   async render() {
-    const { id, data } = this;
-    renderButtons({ plotId: id, data });
+    const { id, data, handleVisibilityToggle } = this;
+
+    this.initPlotsData(data);
+    renderButtons({
+      plotId: id,
+      data,
+      handleVisibilityToggle,
+      checked: this.plotsVisibility
+    });
+
     renderThemeSwitcher();
     this.renderDraggablePlot();
-
-    this.initPointsForAllPlots(data);
 
     this.smallCanvas = this.initCanvas(
       document.querySelector(`#overall-canvas-${id}`),
