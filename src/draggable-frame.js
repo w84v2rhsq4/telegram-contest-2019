@@ -1,5 +1,5 @@
-class DraggablePlot {
-  constructor({ plotId, leftBorder, rightBorder, frameTranslateCallback }) {
+class DraggableFrame {
+  constructor({ plotId, leftBorder, rightBorder, frameChangeCallback }) {
     this.containerId = `overall-${plotId}`;
     this.leftGrabberId = `left-grabber-${plotId}`;
     this.rightGrabberId = `right-grabber-${plotId}`;
@@ -9,7 +9,7 @@ class DraggablePlot {
 
     this.leftBorder = leftBorder;
     this.rightBorder = rightBorder;
-    this.frameTranslateCallback = frameTranslateCallback;
+    this.frameChangeCallback = frameChangeCallback;
 
     this.frameDraggingStartPoint = undefined;
     this.leftDraggingStartPoint = undefined;
@@ -221,7 +221,7 @@ class DraggablePlot {
       newLeftBorder = 100 - frameWidthInPercents;
     }
 
-    this.frameTranslateCallback(newLeftBorder, newRightBorder);
+    this.frameChangeCallback(newLeftBorder, newRightBorder);
     this.setLeftBorder(newLeftBorder);
     this.setRightBorder(newRightBorder);
   }
@@ -243,4 +243,4 @@ class DraggablePlot {
   }
 }
 
-export default DraggablePlot;
+export default DraggableFrame;

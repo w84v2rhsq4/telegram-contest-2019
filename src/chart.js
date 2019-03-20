@@ -1,14 +1,15 @@
-import DraggablePlot from "./draggable-plot";
+import DraggableFrame from "./draggable-frame";
 import Canvas from "./canvas";
 
 import { renderButtons, renderThemeSwitcher } from "./ui";
-import { findExtremeValues, generatePoints, normalizedHexToRgb } from "./maths";
+import {
+  findExtremeValues,
+  generatePoints,
+  hexToNormalizedRgb,
+  normalizeValueToRange
+} from "./maths";
 
-function normalizeValue({ value, a, b, minValue, maxValue }) {
-  return ((b - a) * (value - minValue)) / (maxValue - minValue) + a;
-}
-
-class Plot {
+class Chart {
   constructor({ id, data, textureImg }) {
     this.id = id;
     this.data = data;
@@ -26,18 +27,18 @@ class Plot {
 
     this.extremeValuesMap = {};
 
-    this.handleFrameTranslate = this.handleFrameTranslate.bind(this);
+    this.handleFrameChange = this.handleFrameChange.bind(this);
     this.handleVisibilityToggle = this.handleVisibilityToggle.bind(this);
   }
 
-  handleFrameTranslate(left, right) {
+  handleFrameChange(left, right) {
     this.left = left;
     this.right = right;
 
     const width = right - left;
     const value =
       -1 *
-      normalizeValue({
+      normalizeValueToRange({
         value: left + width / 2,
         a: -(1 - width / 100),
         b: 1 - width / 100,
@@ -57,13 +58,13 @@ class Plot {
     this.smallCanvas.setVisibility(index, isVisible).update();
   }
 
-  renderDraggablePlot() {
-    const { id, left, right, handleFrameTranslate } = this;
-    new DraggablePlot({
+  renderDraggableFrame() {
+    const { id, left, right, handleFrameChange } = this;
+    new DraggableFrame({
       plotId: id,
       leftBorder: left,
       rightBorder: right,
-      frameTranslateCallback: handleFrameTranslate
+      frameChangeCallback: handleFrameChange
     });
   }
 
@@ -89,7 +90,7 @@ class Plot {
       const column = columns[i];
       points.push(generatePoints(x, column, extremeValues));
       const name = column[0];
-      plotColors.push(normalizedHexToRgb(colors[name]));
+      plotColors.push(hexToNormalizedRgb(colors[name]));
       visibility.push(true);
     }
 
@@ -111,7 +112,7 @@ class Plot {
     });
 
     renderThemeSwitcher();
-    this.renderDraggablePlot();
+    this.renderDraggableFrame();
 
     this.smallCanvas = this.initCanvas(
       document.querySelector(`#overall-canvas-${id}`),
@@ -136,4 +137,4 @@ class Plot {
   }
 }
 
-export default Plot;
+export default Chart;

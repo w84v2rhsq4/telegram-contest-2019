@@ -1,5 +1,5 @@
 import "./styles.css";
-import Plot from "./plot";
+import Chart from "./chart";
 
 async function fetchTextureImg() {
   const image = new Image();
@@ -39,7 +39,7 @@ async function main() {
   }
 
   for (let id = 0; id < json.length; id++) {
-    new Plot({ id, data: json[id], textureImg }).render();
+    new Chart({ id, data: json[id], textureImg }).render();
   }
 }
 main();

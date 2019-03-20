@@ -137,6 +137,7 @@ class Canvas {
       this.program,
       "projectionMatrix"
     );
+    this.colorTextureLocation = gl.getUniformLocation(program, "colorTexture");
     this.thicknessLocation = gl.getUniformLocation(program, "thickness");
   }
 
@@ -197,7 +198,7 @@ class Canvas {
     gl.useProgram(program);
 
     // Set values to program variables
-    gl.uniform1i(gl.getUniformLocation(program, "colorTexture"), 0);
+    gl.uniform1i(this.colorTextureLocation, 0);
     gl.uniformMatrix4fv(this.viewMatrixLocation, false, this.viewMatrix);
     gl.uniformMatrix4fv(
       this.projectionMatrixLocation,

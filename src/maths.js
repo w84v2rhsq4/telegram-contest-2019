@@ -106,7 +106,7 @@ function findExtremeValues(plots) {
 function generatePoints(x, y, extremeValues) {
   const maxY = extremeValues.y.max; //Math.max(...iterate(y));
   // const minY = extremeValues.y.min; // Math.min(...iterate(y));
-//   console.log("max", maxY);
+  //   console.log("max", maxY);
   const maxX = extremeValues.x.max; // Math.max(...iterate(x));
   const minX = extremeValues.x.min; //Math.min(...iterate(x));
 
@@ -134,14 +134,22 @@ function generatePoints(x, y, extremeValues) {
 }
 
 function hexToRgb(hex) {
-   return hex.replace(/^#?([a-f\d])([a-f\d])([a-f\d])$/i
-    ,(m, r, g, b) => '#' + r + r + g + g + b + b)
-.substring(1).match(/.{2}/g)
-.map(x => parseInt(x, 16));
+  return hex
+    .replace(
+      /^#?([a-f\d])([a-f\d])([a-f\d])$/i,
+      (m, r, g, b) => "#" + r + r + g + g + b + b
+    )
+    .substring(1)
+    .match(/.{2}/g)
+    .map(x => parseInt(x, 16));
 }
 
-function normalizedHexToRgb(hex) {
-    return hexToRgb(hex).map(c=> c/255);
+function hexToNormalizedRgb(hex) {
+  return hexToRgb(hex).map(c => c / 255);
+}
+
+function normalizeValueToRange({ value, a, b, minValue, maxValue }) {
+  return ((b - a) * (value - minValue)) / (maxValue - minValue) + a;
 }
 
 export {
@@ -150,5 +158,6 @@ export {
   distanceTo,
   findExtremeValues,
   generatePoints,
-  normalizedHexToRgb
+  hexToNormalizedRgb,
+  normalizeValueToRange
 };

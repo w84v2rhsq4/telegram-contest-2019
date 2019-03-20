@@ -1,33 +1,42 @@
 function renderButtons({ plotId, data, checked, handleVisibilityToggle }) {
   const { colors, names } = data;
-
-  const buttonsContainer = document.getElementById(`buttons-${plotId}`);
+  const containerId = `buttons-${plotId}`;
+  const $container = document.getElementById(containerId);
   const plots = Object.keys(names);
+  const checkedClassName = "checked";
+  const idAttrName = "data-id";
+
   for (let i = 0; i < plots.length; i++) {
     const plot = plots[i];
     const button = document.createElement("button");
-    button.setAttribute("data-id", i);
+    button.setAttribute(idAttrName, i);
+
     button.classList.add("button");
     if (checked[i]) {
-      button.classList.add("checked");
+      button.classList.add(checkedClassName);
     }
     button.innerHTML = `<i class="tick-icon" style="background-color:${
       colors[plot]
     }"></i>${names[plot]}`;
-    buttonsContainer.appendChild(button);
+    $container.appendChild(button);
   }
 
-  buttonsContainer.addEventListener("click", function(e) {
-    if (e.target.tagName === "BUTTON") {
-      if (e.target.classList.contains("checked")) {
-        //   e.target.classList.remove("checked");
-        handleVisibilityToggle(e.target.getAttribute("data-id"), false);
-      } else {
-        // e.target.classList.add("checked");
-        handleVisibilityToggle(e.target.getAttribute("data-id"), true);
-      }
+  $container.addEventListener("click", function(e) {
+    const { target } = e;
+    if (target.tagName === "BUTTON") {
+      const id = target.getAttribute(idAttrName);
+      handleVisibilityToggle(id, !target.classList.contains(checkedClassName));
+      target.classList.toggle(checkedClassName);
 
-      e.target.classList.toggle("checked");
+      if (checked.filter(i => i === true).length === 1) {
+        const $lastCheckedButton = [...$container.children].find(el =>
+          el.classList.contains(checkedClassName)
+        );
+
+        $lastCheckedButton.disabled = true;
+      } else {
+        [...$container.children].forEach(el => (el.disabled = false));
+      }
     }
   });
 }
