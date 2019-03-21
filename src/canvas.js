@@ -186,7 +186,7 @@ class Canvas {
     gl.enable(gl.BLEND);
     gl.blendFuncSeparate(
       gl.SRC_COLOR,
-      gl.ONE_MINUS_SRC_ALPHA,
+      gl.ONE_MINUS_DST_COLOR,
       gl.ONE,
       gl.ONE_MINUS_SRC_ALPHA
     );

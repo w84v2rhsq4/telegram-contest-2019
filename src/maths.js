@@ -111,22 +111,29 @@ function generatePoints(x, y, extremeValues) {
   const minX = extremeValues.x.min; //Math.min(...iterate(x));
 
   const resultArray = new Array(x.length - 1 + y.length - 1);
-  for (let i = 0; i < resultArray.length / 2; i += 2) {
-    resultArray[i] = (2 * (x[i + 1] - minX)) / (maxX - minX) - 1;
-    resultArray[i + 1] = (2 * (y[i + 1] - 0)) / (maxY - 0) - 1;
-    if (isNaN(resultArray[i]) || isNaN(resultArray[i + 1])) {
-      debugger;
-    }
+  let index = 1;
+  for (let i = 0; i < resultArray.length; i += 2) {
+    resultArray[i] = (2 * (x[index] - minX)) / (maxX - minX) - 1;
+    resultArray[i + 1] = (2 * (y[index] - 0)) / (maxY - 0) - 1;
+    // if (isNaN(resultArray[i]) || isNaN(resultArray[i + 1])) {
+    //   debugger;
+    // }
+    index++;
   }
 
   const points = [];
-  for (let i = 0; i < resultArray.length - 2; i += 2) {
+  for (let i = 0; i < resultArray.length; i += 2) {
     const a = [resultArray[i], resultArray[i + 1]];
     const b = [resultArray[i + 2], resultArray[i + 3]];
 
-    let step = distanceTo(a, b) * 4000;
-    for (let j = 0; j < step; j++) {
-      points.push(lerp(a, b, j / step));
+    if (a[0] && b[0]) {
+      let step = Math.max(distanceTo(a, b), 0.1) * 1000;
+      //let step = distanceTo(a, b) * 100;
+      for (let j = 0; j < step; j++) {
+        points.push(lerp(a, b, j / step));
+      }
+    } else {
+      points.push(a);
     }
   }
 
