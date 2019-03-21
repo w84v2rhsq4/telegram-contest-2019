@@ -19,7 +19,7 @@ body.dark {
 
 .chart-canvas {
   width: 100%;
-  height: 500px;
+  height: 50vh;
   pointer-events: none;
   border: 1px solid black;
 }

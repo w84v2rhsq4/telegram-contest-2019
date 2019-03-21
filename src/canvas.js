@@ -1,14 +1,7 @@
 import vertexShader from "./shaders/points.vert";
 import fragmentShader from "./shaders/points.frag";
 
-import { findPerspective } from "./maths";
-//prettier-ignore
-const identityMatrix = [
-  1, 0, 0, 0, 
-  0, 1, 0, 0,
-  0, 0, 1, 0,
-  0, 0, 0, 1 
-];
+import { getProjectionByAspect } from "./maths";
 
 class Canvas {
   constructor({
@@ -17,7 +10,8 @@ class Canvas {
     plotColors,
     textureImg,
     thickness,
-    plotsVisibility
+    plotsVisibility,
+    cameraSettings
   }) {
     this.$canvas = $canvas;
     this.points = points;
@@ -35,12 +29,10 @@ class Canvas {
     this.buffers = [];
     this.redraw = true;
 
-    this.viewMatrix = new Float32Array(identityMatrix);
-    this.projectionMatrix = new Float32Array(identityMatrix);
-
     this.animate = this.animate.bind(this);
     window.onresize = this.resizeCanvas.bind(this);
 
+    this.initCamera(cameraSettings);
     this.setContext();
     this.initVertexBuffers();
     this.createProgram();
@@ -59,18 +51,17 @@ class Canvas {
     }
   }
 
-  setCamera({
-    viewScaleY = this.viewScaleY,
-    viewTranslateX = this.viewTranslateX,
-    viewTranslateY = this.viewTranslateY,
-    viewTranslateZ = this.viewTranslateZ,
-    aspect = this.aspect
-  }) {
-    this.viewScaleY = viewScaleY;
-    this.viewTranslateX = viewTranslateX;
-    this.viewTranslateY = viewTranslateY;
-    this.viewTranslateZ = viewTranslateZ;
-    this.aspect = aspect;
+  setCamera(cameraSettings) {
+    const {
+      viewScaleY,
+      viewTranslateX,
+      viewTranslateY,
+      viewTranslateZ,
+      aspect
+    } = {
+      ...this.cameraSettings,
+      ...cameraSettings
+    };
 
     // prettier-ignore
     const viewMatrix = new Float32Array([
@@ -79,23 +70,36 @@ class Canvas {
       0, 0, 1, 0,
       viewTranslateX, viewTranslateY, viewTranslateZ, 1 // x y z -0.5 .. 0.5
     ]);
-    const projectionMatrix = findPerspective(
-      new Float32Array(identityMatrix),
-      Math.PI / 2,
-      aspect, // 0 .. 1
-      0.01,
-      10
-    );
+    const projectionMatrix = getProjectionByAspect(aspect);
 
+    this.cameraSettings = cameraSettings;
     this.viewMatrix = viewMatrix;
     this.projectionMatrix = projectionMatrix;
+  }
 
-    return this;
+  initCamera(settings) {
+    const defaultSettings = {
+      viewScaleY: 1,
+      viewTranslateX: 0,
+      viewTranslateY: 0,
+      viewTranslateZ: -1,
+      aspect: 1
+    };
+    this.setCamera({ ...defaultSettings, ...settings });
+  }
+
+  updateCamera(newSettings) {
+    this.setCamera({ ...this.cameraSettings, ...newSettings });
+    this.update();
   }
 
   setVisibility(index, value) {
     this.plotsVisibility[index] = value;
-    return this;
+  }
+
+  updateVisibility(index, value) {
+    this.setVisibility(index, value);
+    this.update();
   }
 
   initVertexBuffers() {
@@ -161,7 +165,7 @@ class Canvas {
       $canvas.height = $canvas.clientHeight * 2;
 
       gl.viewport(0, 0, $canvas.width, $canvas.height);
-      this.redraw = true;
+      this.update();
     }
   }
 

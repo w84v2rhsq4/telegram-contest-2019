@@ -1,3 +1,11 @@
+//prettier-ignore
+const identityMatrix = [
+  1, 0, 0, 0, 
+  0, 1, 0, 0,
+  0, 0, 1, 0,
+  0, 0, 0, 1 
+];
+
 function findPerspective(elements, fovy, aspect, near, far) {
   let e;
   let rd;
@@ -46,6 +54,16 @@ function findPerspective(elements, fovy, aspect, near, far) {
   e[15] = 0;
 
   return e;
+}
+
+function getProjectionByAspect(aspect) {
+  return findPerspective(
+    new Float32Array(identityMatrix),
+    Math.PI / 2,
+    aspect, // 0 .. 1
+    0.01,
+    10
+  );
 }
 
 function lerp(a, b, t) {
@@ -137,7 +155,10 @@ function generatePoints(x, y, extremeValues) {
     }
   }
 
-  return points.flat();
+  return {
+    originalPoints: resultArray,
+    generatedPoints: points.flat()
+  };
 }
 
 function hexToRgb(hex) {
@@ -160,7 +181,7 @@ function normalizeValueToRange({ value, a, b, minValue, maxValue }) {
 }
 
 export {
-  findPerspective,
+  getProjectionByAspect,
   lerp,
   distanceTo,
   findExtremeValues,
