@@ -86,30 +86,43 @@ function distanceTo(a, b) {
 }
 
 function* iterate(arr) {
-  for (let i = 1; i < arr.length; i++) {
+  for (let i = 0; i < arr.length; i++) {
     yield arr[i];
   }
 }
 
-function findExtremeValues(plots) {
-  const maxX = Math.max(...iterate(plots[0]));
-  const minX = Math.min(...iterate(plots[0]));
-  const extremeValuesMap = {
-    x: {
-      max: maxX,
-      min: minX
-    }
+function getExtreme(arr) {
+  let max = arr[1];
+  let min = arr[1];
+  for (let i = 2; i < arr.length; i++) {
+    max = Math.max(max, arr[i]);
+    min = Math.min(min, arr[i]);
+  }
+
+  return { max, min };
+}
+
+function findExtremeValues(plots, start, end) {
+  const extremeValuesMap = {};
+
+  const pointsX = start !== undefined ? plots[0].slice(start, end) : plots[0];
+  const { max: maxX, min: minX } = getExtreme(pointsX);
+  extremeValuesMap.x = {
+    max: maxX,
+    min: minX
   };
+
   const yMaxValues = [];
   const yMinValues = [];
   for (let i = 1; i < plots.length; i++) {
-    const maxYi = Math.max(...iterate(plots[i]));
-    const minYi = Math.min(...iterate(plots[i]));
-    // debugger;
+    const pointsY = start !== undefined ? plots[i].slice(start, end) : plots[i];
+
+    const { max: maxYi, min: minYi } = getExtreme(pointsY);
     extremeValuesMap[plots[i][0]] = {
       max: maxYi,
       min: minYi
     };
+
     yMaxValues.push(maxYi);
     yMinValues.push(minYi);
   }
@@ -118,15 +131,14 @@ function findExtremeValues(plots) {
     max: Math.max(...yMaxValues),
     min: Math.min(...yMinValues)
   };
+  // console.log(extremeValuesMap);
   return extremeValuesMap;
 }
 
 function generatePoints(x, y, extremeValues) {
-  const maxY = extremeValues.y.max; //Math.max(...iterate(y));
-  // const minY = extremeValues.y.min; // Math.min(...iterate(y));
-  //   console.log("max", maxY);
-  const maxX = extremeValues.x.max; // Math.max(...iterate(x));
-  const minX = extremeValues.x.min; //Math.min(...iterate(x));
+  const maxY = extremeValues.y.max;
+  const maxX = extremeValues.x.max;
+  const minX = extremeValues.x.min;
 
   const resultArray = new Array(x.length - 1 + y.length - 1);
   let index = 1;
@@ -148,7 +160,7 @@ function generatePoints(x, y, extremeValues) {
       let step = Math.max(distanceTo(a, b), 0.1) * 1000;
       //let step = distanceTo(a, b) * 100;
       for (let j = 0; j < step; j++) {
-        points.push(lerp(a, b, j / step));
+        points.push(...lerp(a, b, j / step));
       }
     } else {
       points.push(a);
@@ -156,8 +168,8 @@ function generatePoints(x, y, extremeValues) {
   }
 
   return {
-    originalPoints: resultArray,
-    generatedPoints: points.flat()
+    generatedPoints: points,
+    resultArray
   };
 }
 

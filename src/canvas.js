@@ -1,7 +1,7 @@
 import vertexShader from "./shaders/points.vert";
 import fragmentShader from "./shaders/points.frag";
 
-import { getProjectionByAspect } from "./maths";
+import { getProjectionByAspect /*, normalizeValueToRange*/ } from "./maths";
 
 class Canvas {
   constructor({
@@ -30,6 +30,7 @@ class Canvas {
     this.redraw = true;
 
     this.animate = this.animate.bind(this);
+    /*  this.animateCamera = this.animateCamera.bind(this);*/
     window.onresize = this.resizeCanvas.bind(this);
 
     this.initCamera(cameraSettings);
@@ -92,6 +93,49 @@ class Canvas {
     this.setCamera({ ...this.cameraSettings, ...newSettings });
     this.update();
   }
+
+  /*lerp(a, b, t) {
+    const out = a + t * (b - a);
+    return out;
+  }
+
+  updateCamera(newSettings) {
+    if (newSettings.viewTranslateY) {
+      this.keyframe = [
+        this.cameraSettings.viewTranslateY,
+        newSettings.viewTranslateY,
+        [performance.now(), performance.now() + 2000]
+      ];
+    }
+
+    delete newSettings.viewTranslateY;
+    this.setCamera({ ...this.cameraSettings, ...newSettings });
+    this.update();
+
+    if (this.keyframe) {
+      this.animateCamera(performance.now());
+    }
+  }
+
+  animateCamera(sec) {
+    const time = normalizeValueToRange({
+      value: sec,
+      minValue: this.keyframe[2][0],
+      maxValue: this.keyframe[2][1],
+      a: 0,
+      b: 1
+    });
+    if (time > 1) {
+      return;
+    }
+
+    const v = this.lerp(this.keyframe[0], this.keyframe[1], time);
+
+    this.setCamera({ ...this.cameraSettings, viewTranslateY: v });
+    this.update();
+
+    requestAnimationFrame(this.animateCamera);
+  } */
 
   setVisibility(index, value) {
     this.plotsVisibility[index] = value;

@@ -25,29 +25,54 @@ class Chart {
     this.leftBorder = 75;
     this.rightBorder = 100;
 
-    this.extremeValuesMap = {};
+    this.originalPoints = undefined;
+    this.totalExtremeValuesMap = {};
+    this.currentFrameExtremeValuesMap = {};
 
     this.handleFrameChange = this.handleFrameChange.bind(this);
     this.handleVisibilityToggle = this.handleVisibilityToggle.bind(this);
   }
 
-  getCurrentLargeCanvasTranslation() {
+  getCurrentLargeCanvasHorizontalTransform() {
     const { leftBorder, rightBorder } = this;
     const width = rightBorder - leftBorder;
-    return (
-      -1 *
-      normalizeValueToRange({
-        value: leftBorder + width / 2,
-        a: -(1 - width / 100),
-        b: 1 - width / 100,
-        minValue: width / 2,
-        maxValue: 100 - width / 2
-      })
-    );
+
+    return {
+      viewTranslateX:
+        -1 *
+        normalizeValueToRange({
+          value: leftBorder + width / 2,
+          a: -(1 - width / 100),
+          b: 1 - width / 100,
+          minValue: width / 2,
+          maxValue: 100 - width / 2
+        }),
+      aspect: width / 100
+    };
   }
 
-  getCurrentLargeCanvasAspect() {
-    return (this.rightBorder - this.leftBorder) / 100;
+  getCurrentLargeCanvasVerticalTransform() {
+    const { totalExtremeValuesMap, currentFrameExtremeValuesMap } = this;
+    const diffRatio =
+      totalExtremeValuesMap.y.max /
+      this.getMaxYOfVisiblePlotsFromMap(currentFrameExtremeValuesMap);
+
+    return {
+      viewScaleY: diffRatio,
+      viewTranslateY: diffRatio - 1
+    };
+  }
+
+  getCurrentSmallCanvasVerticalTransform() {
+    const { totalExtremeValuesMap } = this;
+    const diffRatio =
+      totalExtremeValuesMap.y.max /
+      this.getMaxYOfVisiblePlotsFromMap(totalExtremeValuesMap);
+
+    return {
+      viewScaleY: diffRatio,
+      viewTranslateY: diffRatio - 1
+    };
   }
 
   updateFrameBorders(leftBorder, rightBorder) {
@@ -55,12 +80,43 @@ class Chart {
     this.rightBorder = rightBorder;
   }
 
+  setLocalExtremeValuesMap() {
+    const { leftBorder, rightBorder } = this;
+
+    const leftIndex = Math.ceil(
+      normalizeValueToRange({
+        value: leftBorder,
+        a: 0,
+        b: this.originalPoints[0].length - 1,
+        minValue: 0,
+        maxValue: 100
+      })
+    );
+    const rightIndex = Math.floor(
+      normalizeValueToRange({
+        value: rightBorder,
+        a: 0,
+        b: this.originalPoints[0].length - 1,
+        minValue: 0,
+        maxValue: 100
+      })
+    );
+
+    this.currentFrameExtremeValuesMap = findExtremeValues(
+      this.originalPoints,
+      leftIndex,
+      rightIndex
+    );
+  }
+
   handleFrameChange(leftBorder, rightBorder) {
     this.updateFrameBorders(leftBorder, rightBorder);
 
+    this.setLocalExtremeValuesMap();
+
     this.largeCanvas.updateCamera({
-      viewTranslateX: this.getCurrentLargeCanvasTranslation(),
-      aspect: this.getCurrentLargeCanvasAspect()
+      ...this.getCurrentLargeCanvasHorizontalTransform(),
+      ...this.getCurrentLargeCanvasVerticalTransform()
     });
   }
 
@@ -68,24 +124,21 @@ class Chart {
     this.largeCanvas.updateVisibility(index, isVisible);
     this.smallCanvas.updateVisibility(index, isVisible);
 
-    const diffRatio =
-      this.extremeValuesMap.y.max / this.getMaxYOfVisiblePlots();
-    const cameraSettings = {
-      viewScaleY: diffRatio,
-      viewTranslateY: diffRatio - 1
-    };
-
-    this.largeCanvas.updateCamera(cameraSettings);
-    this.smallCanvas.updateCamera(cameraSettings);
+    this.largeCanvas.updateCamera(
+      this.getCurrentLargeCanvasVerticalTransform()
+    );
+    this.smallCanvas.updateCamera(
+      this.getCurrentSmallCanvasVerticalTransform()
+    );
   }
 
-  getMaxYOfVisiblePlots() {
+  getMaxYOfVisiblePlotsFromMap(map) {
     let newMaxY = 0;
     for (let i = 0; i < this.plotsVisibility.length; i++) {
       if (this.plotsVisibility[i] === false) {
         continue;
       }
-      const current = this.extremeValuesMap[`y${i}`].max;
+      const current = map[`y${i}`].max;
       if (newMaxY < current) {
         newMaxY = current;
       }
@@ -114,13 +167,8 @@ class Chart {
 
     for (let i = 1; i < columns.length; i++) {
       const column = columns[i];
-      const { originalPoints, generatedPoints } = generatePoints(
-        x,
-        column,
-        extremeValues
-      );
-      //  console.log(originalPoints);
-      //originalPoints.push(originalPoints);
+      const { generatedPoints } = generatePoints(x, column, extremeValues);
+
       points.push(generatedPoints);
       const name = column[0];
       plotColors.push(hexToNormalizedRgb(colors[name]));
@@ -129,8 +177,11 @@ class Chart {
 
     this.points = points;
     this.plotColors = plotColors;
-    this.extremeValuesMap = extremeValues;
+    this.totalExtremeValuesMap = extremeValues;
     this.plotsVisibility = visibility;
+    this.originalPoints = columns;
+
+    this.setLocalExtremeValuesMap();
   }
 
   renderCanvases() {
@@ -147,9 +198,9 @@ class Chart {
       $canvas: document.querySelector(`#chart-canvas-${id}`),
       thickness: 4.0,
       cameraSettings: {
-        viewTranslateX: this.getCurrentLargeCanvasTranslation(),
-        aspect: this.getCurrentLargeCanvasAspect(),
-        viewTranslateZ: -1
+        viewTranslateZ: -1,
+        ...this.getCurrentLargeCanvasHorizontalTransform(),
+        ...this.getCurrentLargeCanvasVerticalTransform()
       }
     });
 
@@ -161,12 +212,12 @@ class Chart {
   }
 
   renderButtons() {
-    const { id, data, handleVisibilityToggle } = this;
+    const { id, data, handleVisibilityToggle, plotsVisibility } = this;
     renderButtons({
       plotId: id,
       data,
       handleVisibilityToggle,
-      checked: this.plotsVisibility
+      checked: plotsVisibility
     });
   }
 

@@ -104,6 +104,10 @@ body.dark {
   opacity: 0.7;
 }
 
+.dark .overlay::after {
+  background: black;
+}
+
 .overlay-left {
   left: 0;
 }
