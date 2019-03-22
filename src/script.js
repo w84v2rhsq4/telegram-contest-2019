@@ -23,7 +23,8 @@ async function main() {
   const $content = document.getElementById("content");
   for (let id = 0; id < json.length; id++) {
     $content.innerHTML += `
-      <div class="plot-container">
+      <div class="chart-container">
+        <h2 class="chart-header">Chart #${id}</h2>
         <canvas id="chart-canvas-${id}" class="chart-canvas"></canvas>
         <div id="overall-${id}" class="overall">
           <div id="left-overlay-${id}" class="overlay overlay-left"></div>
@@ -37,6 +38,10 @@ async function main() {
         <div id="buttons-${id}" class="buttons"></div>
       </div>`;
   }
+
+  $content.innerHTML += `<div class="theme-switcher-container">
+      <button id="theme-switcher" class="theme-switcher"></button>
+    </div>`;
 
   for (let id = 0; id < json.length; id++) {
     new Chart({ id, data: json[id], textureImg }).render();

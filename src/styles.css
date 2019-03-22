@@ -6,11 +6,13 @@ body {
 body {
   box-sizing: border-box;
   user-select: none;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 .main-container {
   display: flex;
   flex-direction: column;
+  box-shadow: inset 0 7px 9px -7px rgba(0, 0, 0, 0.3);
 }
 
 body.dark {
@@ -27,8 +29,17 @@ body.dark {
 .content-container {
 }
 
-.plot-container {
+.chart-container {
   margin: 0 18px;
+}
+
+.chart-header {
+  letter-spacing: 0.2px;
+  font-size: 24px;
+}
+
+.dark .chart-header {
+  color: #fff;
 }
 
 .theme-switcher-container {
@@ -62,7 +73,7 @@ body.dark {
   padding: 0px 20px 0 12px;
   border: 1px solid #e6ecf0;
   outline: none;
-  background-color: #fff;
+  background: transparent;
   margin-right: 16px;
   font-size: 19px;
   line-height: 37px;
@@ -71,6 +82,16 @@ body.dark {
   cursor: pointer;
   user-select: none;
   margin-bottom: 10px;
+  color: #333;
+}
+
+.dark .button {
+  color: #efefef;
+  border-color: rgba(86, 130, 163, 0.25);
+}
+
+.button:disabled {
+  cursor: default;
 }
 
 .overall {
@@ -106,6 +127,7 @@ body.dark {
 
 .dark .overlay::after {
   background: black;
+  opacity: 0.35;
 }
 
 .overlay-left {
@@ -124,18 +146,25 @@ body.dark {
   z-index: 1;
 }
 
+.dark .frame {
+  border-color: rgb(86, 130, 163, 0.5);
+}
+
 .frame::after {
   content: "";
   height: 56px;
   background: #fff;
   opacity: 1;
-  z-index: 999999;
   position: absolute;
   top: 0px;
   left: 6px;
   opacity: 0.2;
   right: 6px;
   bottom: 1px;
+}
+
+.dark .frame::after {
+  display: none;
 }
 
 .grabber {
@@ -148,6 +177,10 @@ body.dark {
   z-index: 1;
 }
 
+.dark .grabber {
+  background: rgb(86, 130, 163, 0.5);
+}
+
 .grabber::after {
   content: "";
   display: block;
@@ -156,6 +189,11 @@ body.dark {
   background: #fff;
   opacity: 0.4;
 }
+
+.dark .grabber::after {
+  display: none;
+}
+
 .grabber-left {
   left: 0;
   /* cursor: w-resize;*/
@@ -191,6 +229,10 @@ body.dark {
   left: 2px;
   position: absolute;
   transition: transform 0.2s;
+}
+
+.dark .tick-icon::after {
+  background-color: #242f3e;
 }
 
 .checked .tick-icon::after {

@@ -42,12 +42,25 @@ function renderButtons({ plotId, data, checked, handleVisibilityToggle }) {
 }
 
 function renderThemeSwitcher() {
-  document.getElementById("theme-switcher").addEventListener("click", e => {
-    const nightMode = document.body.classList.contains("dark");
+  const isInitialThemeDark = false;
+  const $switcher = document.getElementById("theme-switcher");
+  let isDark = isInitialThemeDark;
 
-    e.target.innerText = `Switch to ${nightMode ? "Night Mode" : "Day Mode"}`;
+  function setInnerText(target) {
+    target.innerText = `Switch to ${isDark ? "Day Mode" : "Night Mode"}`;
+  }
 
-    document.body.classList.toggle("dark");
+  setInnerText($switcher, !isInitialThemeDark);
+  if (isInitialThemeDark) {
+    document.body.classList.add("dark");
+  }
+
+  $switcher.addEventListener("click", () => {
+    isDark = !isDark;
+
+    setInnerText($switcher);
+
+    document.body.classList.toggle("dark", isDark);
   });
 }
 
