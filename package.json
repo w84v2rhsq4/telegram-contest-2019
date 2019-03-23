@@ -17,11 +17,14 @@
   },
   "homepage": "https://github.com/w84v2rhsq4/telegram-contest-2019#readme",
   "devDependencies": {
+    "css-loader": "^2.1.1",
+    "cssnano": "^4.1.10",
+    "postcss-inline-svg": "^3.1.1",
+    "postcss-loader": "^3.0.0",
+    "raw-loader": "^2.0.0",
+    "style-loader": "^0.23.1",
     "terser-webpack-plugin": "^1.2.3",
+    "webpack": "^4.29.6",
     "webpack-cli": "^3.3.0"
-  },
-  "dependencies": {
-    "webpack": "^4.29.6"
-  },
-  "description": ""
+  }
 }
