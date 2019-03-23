@@ -85,10 +85,24 @@ function distanceTo(a, b) {
   return Math.sqrt(distanceToSquared(a, b));
 }
 
-function* iterate(arr) {
-  for (let i = 0; i < arr.length; i++) {
-    yield arr[i];
-  }
+function findIndexOfClosestValue(array, value) {
+  // return array.findIndex((el, i, arr) => {
+  //   // return typeof el === "number" && el >= value;
+
+  //   console.log(i, arr[i], arr[i - 1]);
+  //   return (
+  //     typeof el === "number" &&
+  //     Math.abs(array[i + 1] - goal) > Math.abs(array[i] - goal)
+  //   );
+  // });
+  return array.reduce((prev, _, i) => {
+    if (i === 0) {
+      return 1;
+    }
+    return Math.abs(array[i] - value) < Math.abs(array[prev] - value)
+      ? i
+      : prev;
+  }, 0);
 }
 
 function getExtreme(arr) {
@@ -105,12 +119,18 @@ function getExtreme(arr) {
 function findExtremeValues(plots, start, end) {
   const extremeValuesMap = {};
 
-  const pointsX = start !== undefined ? plots[0].slice(start, end) : plots[0];
-  const { max: maxX, min: minX } = getExtreme(pointsX);
-  extremeValuesMap.x = {
-    max: maxX,
-    min: minX
-  };
+  const xPlot = plots[0];
+  if (start === undefined) {
+    extremeValuesMap.x = {
+      max: xPlot[xPlot.length - 1],
+      min: xPlot[1]
+    };
+  } else {
+    extremeValuesMap.x = {
+      max: xPlot[end],
+      min: xPlot[start + 1]
+    };
+  }
 
   const yMaxValues = [];
   const yMinValues = [];
@@ -199,5 +219,6 @@ export {
   findExtremeValues,
   generatePoints,
   hexToNormalizedRgb,
-  normalizeValueToRange
+  normalizeValueToRange,
+  findIndexOfClosestValue
 };

@@ -25,7 +25,12 @@ async function main() {
     $content.innerHTML += `
       <div class="chart-container">
         <h2 class="chart-header">Chart #${id}</h2>
-        <canvas id="chart-canvas-${id}" class="chart-canvas"></canvas>
+        <div class="canvas-container">
+          <div id="tooltip-${id}" class="tooltip"></div>
+          <canvas id="chart-canvas-${id}" class="chart-canvas"></canvas>
+          <div id="grid-${id}" class="y-grid-container"></div>
+          <div id="timeline-${id}" class="timeline-container"></div>
+        </div>
         <div id="overall-${id}" class="overall">
           <div id="left-overlay-${id}" class="overlay overlay-left"></div>
           <div id="right-overlay-${id}" class="overlay overlay-right"></div>
@@ -47,4 +52,5 @@ async function main() {
     new Chart({ id, data: json[id], textureImg }).render();
   }
 }
+
 main();

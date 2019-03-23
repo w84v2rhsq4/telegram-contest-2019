@@ -42,7 +42,7 @@ function renderButtons({ plotId, data, checked, handleVisibilityToggle }) {
 }
 
 function renderThemeSwitcher() {
-  const isInitialThemeDark = false;
+  const isInitialThemeDark = true;
   const $switcher = document.getElementById("theme-switcher");
   let isDark = isInitialThemeDark;
 

@@ -1,13 +1,16 @@
 import DraggableFrame from "./draggable-frame";
 import Canvas from "./canvas";
+import Tooltip from "./tooltip";
 
 import { renderButtons, renderThemeSwitcher } from "./ui";
 import {
   findExtremeValues,
   generatePoints,
   hexToNormalizedRgb,
-  normalizeValueToRange
+  normalizeValueToRange,
+  findIndexOfClosestValue
 } from "./maths";
+import { months } from "./utils";
 
 class Chart {
   constructor({ id, data, textureImg }) {
@@ -83,24 +86,29 @@ class Chart {
   setLocalExtremeValuesMap() {
     const { leftBorder, rightBorder } = this;
 
-    const leftIndex = Math.ceil(
+    const leftIndex = findIndexOfClosestValue(
+      this.originalPoints[0],
       normalizeValueToRange({
         value: leftBorder,
-        a: 0,
-        b: this.originalPoints[0].length - 1,
+        a: this.originalPoints[0][1],
+        b: this.originalPoints[0][this.originalPoints[0].length - 1],
         minValue: 0,
         maxValue: 100
       })
     );
-    const rightIndex = Math.floor(
+    const rightIndex = findIndexOfClosestValue(
+      this.originalPoints[0],
       normalizeValueToRange({
         value: rightBorder,
-        a: 0,
-        b: this.originalPoints[0].length - 1,
+        a: this.originalPoints[0][1],
+        b: this.originalPoints[0][this.originalPoints[0].length - 1],
         minValue: 0,
         maxValue: 100
       })
     );
+
+    this.leftIndex = leftIndex;
+    this.rightIndex = rightIndex;
 
     this.currentFrameExtremeValuesMap = findExtremeValues(
       this.originalPoints,
@@ -118,6 +126,9 @@ class Chart {
       ...this.getCurrentLargeCanvasHorizontalTransform(),
       ...this.getCurrentLargeCanvasVerticalTransform()
     });
+
+    this.renderGrid();
+    this.renderTimeline();
   }
 
   handleVisibilityToggle(index, isVisible) {
@@ -193,6 +204,7 @@ class Chart {
       plotsVisibility: this.plotsVisibility
     };
 
+    const $largeCanvas = document.querySelector(`#chart-canvas-${id}`);
     this.largeCanvas = new Canvas({
       ...commonOptions,
       $canvas: document.querySelector(`#chart-canvas-${id}`),
@@ -221,12 +233,134 @@ class Chart {
     });
   }
 
+  renderTooltip() {
+    const { id } = this;
+    const $tooltip = document.querySelector(`#tooltip-${id}`);
+    this.tooltip = new Tooltip({ $tooltip });
+  }
+
+  updateTooltip(data) {
+    this.tooltip.updateData(data);
+    this.tooltip.rerender();
+  }
+
+  renderGrid() {
+    const { id, currentFrameExtremeValuesMap } = this;
+    const $container = document.querySelector(`#grid-${id}`);
+
+    if ($container.children.length > 1) {
+      $container.children[0].remove();
+    }
+    const $grid = document.createElement("div");
+    $grid.className = "y-grid";
+    const itemHeight = ($container.offsetHeight * 0.9) / 5 - 1;
+
+    const max = currentFrameExtremeValuesMap.y.max * 0.9;
+
+    const step = max / 5;
+    const data = [];
+    for (let i = 0, offset = 0; i < 6; i++) {
+      data.push(Math.floor(offset));
+      offset += step;
+    }
+
+    let bottom = 0;
+    for (let i = 0; i < data.length; i++) {
+      const $item = document.createElement("div");
+      $item.className = "y-grid-item";
+      $item.innerHTML = `<span>${data[i]}</span>`;
+      $item.style.bottom = `${bottom}px`;
+      $grid.appendChild($item);
+      bottom += itemHeight;
+    }
+    $container.appendChild($grid);
+
+    if ($container.children.length > 1) {
+      if (this.currentFrameExtremeValuesMap.y.max < this.currentGridMax) {
+        $container.children[0].classList.add("animate-up");
+        $container.children[1].classList.add("animate-down");
+
+        $grid.offsetWidth;
+        $container.children[1].classList.remove("animate-down");
+      } else {
+        $container.children[0].classList.add("animate-down");
+        $container.children[1].classList.add("animate-up");
+
+        $grid.offsetWidth;
+        $container.children[1].classList.remove("animate-up");
+      }
+    }
+
+    this.currentGridMax = this.currentFrameExtremeValuesMap.y.max;
+  }
+
+  renderTimeline() {
+    const { id } = this;
+    const $container = document.querySelector(`#timeline-${id}`);
+    $container.innerHTML = "";
+    const { min, max } = this.currentFrameExtremeValuesMap.x;
+
+    const step = (max - min) / 6;
+    const data = [];
+    for (let i = 0, offset = min; i < 6; i++) {
+      const date = new Date(Math.floor(offset));
+
+      data.push(`${months[date.getMonth()]} ${date.getDate()}`);
+      offset += step;
+    }
+
+    for (let i = 0; i < data.length; i++) {
+      const $item = document.createElement("div");
+      $item.className = "timeline-item";
+      $item.innerHTML = `<span>${data[i]}</span>`;
+
+      $container.appendChild($item);
+    }
+  }
+
   async render() {
     this.initPlotsData();
     this.renderButtons();
     this.renderDraggableFrame();
     this.renderCanvases();
     renderThemeSwitcher();
+    this.renderTooltip();
+
+    this.renderGrid();
+    this.renderTimeline();
+
+    const $grid = document.querySelector(`#grid-${this.id}`);
+
+    $grid.addEventListener("mousemove", e => {
+      console.log(e.offsetX);
+
+      const value = normalizeValueToRange({
+        value: e.offsetX,
+        maxValue: $grid.offsetWidth,
+        minValue: 0,
+        a: this.currentFrameExtremeValuesMap.x.min,
+        b: this.currentFrameExtremeValuesMap.x.max
+      });
+
+      const valueIndex = findIndexOfClosestValue(this.originalPoints[0], value);
+
+      console.log("vallue index", e.offsetX, $grid.offsetWidth,);
+      const tooltipData = [];
+
+      for (let i = 1; i < this.originalPoints.length; i++) {
+        const plotName = this.originalPoints[i][0];
+        tooltipData.push({
+          name: this.data.names[plotName],
+          value: this.originalPoints[i][valueIndex],
+          color: this.data.colors[plotName]
+        });
+      }
+
+      this.updateTooltip({
+        plotsData: tooltipData,
+        time: this.originalPoints[0][valueIndex]
+      });
+    });
   }
 }
 

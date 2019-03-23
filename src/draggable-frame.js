@@ -1,3 +1,11 @@
+function getEventProps(e) {
+  if (e.touches && e.touches.length === 1) {
+    return e.touches[0];
+  } else {
+    return e;
+  }
+}
+
 class DraggableFrame {
   constructor({ plotId, leftBorder, rightBorder, frameChangeCallback }) {
     this.containerId = `overall-${plotId}`;
@@ -6,6 +14,8 @@ class DraggableFrame {
     this.frameId = `frame-${plotId}`;
     this.leftOverlayId = `left-overlay-${plotId}`;
     this.rightOverlayId = `right-overlay-${plotId}`;
+
+    this.minFrameWidth = 10;
 
     this.leftBorder = leftBorder;
     this.rightBorder = rightBorder;
@@ -24,8 +34,16 @@ class DraggableFrame {
 
     this.$container.addEventListener("click", this);
     this.$container.addEventListener("mousedown", this);
+
+    this.$container.addEventListener("touchstart", this);
+
     document.addEventListener("mousemove", this);
+    document.addEventListener("touchmove", this, {
+      passive: false
+    });
+
     document.addEventListener("mouseup", this);
+    document.addEventListener("touchend", this);
 
     this.setLeftBorder(this.leftBorder);
     this.setRightBorder(this.rightBorder);
@@ -37,18 +55,31 @@ class DraggableFrame {
         this.handleClick(event);
         break;
       }
-      case "mousemove": {
-        this.handleMouseMove(event);
-        break;
-      }
-      // case "mouseleave": {
-      //   break;
-      // }
       case "mousedown": {
         this.handleMouseDown(event);
         break;
       }
+      case "touchstart": {
+        if (event.touches.length === 1) {
+          this.handleMouseDown(event);
+        }
+        break;
+      }
+      case "mousemove": {
+        this.handleMouseMove(event);
+        break;
+      }
+      case "touchmove": {
+        if (event.touches.length === 1) {
+          this.handleMouseMove(event);
+        }
+        break;
+      }
       case "mouseup": {
+        this.handleMouseUp(event);
+        break;
+      }
+      case "touchend": {
         this.handleMouseUp(event);
         break;
       }
@@ -61,15 +92,6 @@ class DraggableFrame {
     } = e;
     const { leftOverlayId, rightOverlayId } = this;
     switch (targetId) {
-      //   case leftGrabberId: {
-      //     break;
-      //   }
-      //   case rightGrabberId: {
-      //     break;
-      //   }
-      //   case frameId: {
-      //     break;
-      //   }
       case leftOverlayId: {
         this.handleOverlayClick(e, { side: "left" });
         break;
@@ -104,27 +126,41 @@ class DraggableFrame {
 
   handleMouseMove(e) {
     if (this.isFrameDragging()) {
+      // this.disableScroll();
       this.processFrameDrag(e);
     }
     if (this.isLeftGrabberDragging()) {
+      // this.disableScroll();
       this.processLeftGrabberDrag(e);
     }
     if (this.isRightGrabberDragging()) {
+      // this.disableScroll();
       this.processRightGrabberDrag(e);
     }
   }
 
   handleMouseUp() {
     if (this.isFrameDragging()) {
+      // this.enableScroll();
       this.stopFrameDrag();
     }
     if (this.isLeftGrabberDragging()) {
+      // this.enableScroll();
       this.stopLeftGrabberDrag();
     }
     if (this.isRightGrabberDragging()) {
+      // this.enableScroll();
       this.stopRightGrabberDrag();
     }
   }
+
+  // disableScroll() {
+  //   document.body.classList.add("disabled-scroll");
+  // }
+
+  // enableScroll() {
+  //   document.body.classList.remove("disabled-scroll");
+  // }
 
   /** Left dragging */
   isLeftGrabberDragging() {
@@ -132,16 +168,19 @@ class DraggableFrame {
   }
 
   startLeftGrabberDrag(e) {
-    const { clientX } = e;
+    const { clientX } = getEventProps(e);
     this.leftDraggingStartPoint = clientX;
   }
 
   processLeftGrabberDrag(e) {
-    const { clientX } = e;
+    const { clientX } = getEventProps(e);
     const dx = this.toPercents(this.leftDraggingStartPoint - clientX);
-    this.setBorders(this.leftBorder - dx, this.rightBorder);
 
-    this.leftDraggingStartPoint = clientX;
+    if (this.rightBorder - (this.leftBorder - dx) > this.minFrameWidth) {
+      this.setBorders(this.leftBorder - dx, this.rightBorder);
+
+      this.leftDraggingStartPoint = clientX;
+    }
   }
 
   stopLeftGrabberDrag() {
@@ -154,16 +193,19 @@ class DraggableFrame {
   }
 
   startRightGrabberDrag(e) {
-    const { clientX } = e;
+    const { clientX } = getEventProps(e);
     this.rightDraggingStartPoint = clientX;
   }
 
   processRightGrabberDrag(e) {
-    const { clientX } = e;
+    const { clientX } = getEventProps(e);
     const dx = this.toPercents(this.rightDraggingStartPoint - clientX);
-    this.setBorders(this.leftBorder, this.rightBorder - dx);
 
-    this.rightDraggingStartPoint = clientX;
+    if (this.rightBorder - dx - this.leftBorder > this.minFrameWidth) {
+      this.setBorders(this.leftBorder, this.rightBorder - dx);
+
+      this.rightDraggingStartPoint = clientX;
+    }
   }
 
   stopRightGrabberDrag() {
@@ -176,13 +218,15 @@ class DraggableFrame {
   }
 
   startFrameDrag(e) {
-    const { clientX } = e;
+    const { clientX } = getEventProps(e);
     this.frameDraggingStartPoint = clientX;
   }
 
   processFrameDrag(e) {
-    const { clientX } = e;
+    const { clientX } = getEventProps(e);
+
     let dx = this.toPercents(this.frameDraggingStartPoint - clientX);
+
     this.setBorders(this.leftBorder - dx, this.rightBorder - dx);
 
     this.frameDraggingStartPoint = clientX;
