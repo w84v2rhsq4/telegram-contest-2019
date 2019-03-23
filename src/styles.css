@@ -345,11 +345,51 @@ body.dark {
   position: absolute;
   top: 10%;
   left: 50%;
-  box-shadow: 0px 0px 9px 0px rgba(0, 0, 0, 0.75);
+  box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.12);
+  border-radius: 5px;
   background-color: #fff;
   z-index: 10;
+  padding: 0 16px;
+  width: 100px;
+  display: none;
+}
+
+.tooltip.shown {
+  display: block;
+}
+
+.tooltip-plots-list {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.tooltip-plots-data {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+.tooltip-plots-value {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.tooltip-plots-name {
+  font-size: 15px;
+  letter-spacing: 0.2px;
+}
+.tooltip-time {
+  font-size: 18px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  color: #333;
+  margin: 12px 0;
 }
 
 .dark .tooltip {
-  background-color: #242f3e;
+  background-color: #253241;
+}
+
+.dark .tooltip-time {
+  color: #fff;
 }

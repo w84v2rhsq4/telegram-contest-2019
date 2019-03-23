@@ -3,31 +3,16 @@ import { months, days } from "./utils";
 class Tooltip {
   constructor({ $tooltip }) {
     this.$tooltip = $tooltip;
-    this.time = new Date(1542672000000);
-    this.plotsData = [
-      {
-        name: "Joined",
-        value: "142",
-        color: "red"
-      },
-      {
-        name: "Left",
-        value: "67",
-        color: "green"
-      },
-      {
-        name: "Left",
-        value: "67",
-        color: "green"
-      },
-      {
-        name: "Left",
-        value: "67",
-        color: "green"
-      }
-    ];
+    this.time = undefined;
+    this.plotsData = [];
 
-    this.init();
+    this.$time = document.createElement("div");
+    this.$time.className = "tooltip-time";
+    this.$plotsList = document.createElement("div");
+    this.$plotsList.className = "tooltip-plots-list";
+
+    this.$tooltip.appendChild(this.$time);
+    this.$tooltip.appendChild(this.$plotsList);
   }
 
   getFormattedTime() {
@@ -36,21 +21,6 @@ class Tooltip {
     return `${days[time.getDay()]}, ${
       months[time.getMonth()]
     } ${time.getDate()}`;
-  }
-
-  init() {
-    const { time } = this;
-
-    this.$time = document.createElement("div");
-    this.$time.className = "tooltip-time";
-    this.$time.innerHTML = this.getFormattedTime();
-
-    this.$plotsList = document.createElement("div");
-    this.$plotsList.className = "tooltip-plots-list";
-    this.$tooltip.appendChild(this.$time);
-    this.$tooltip.appendChild(this.$plotsList);
-
-    this.renderItems();
   }
 
   renderItems() {
@@ -80,14 +50,18 @@ class Tooltip {
     }
   }
 
-  updateData({ plotsData, time }) {
+  setData({ plotsData, time }) {
     this.time = new Date(time);
     this.plotsData = plotsData;
+
+    return this;
   }
 
-  rerender() {
+  render() {
     this.$time.innerHTML = this.getFormattedTime();
     this.renderItems();
+
+    return this;
   }
 
   show() {

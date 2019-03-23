@@ -64,4 +64,74 @@ function renderThemeSwitcher() {
   });
 }
 
-export { renderButtons, renderThemeSwitcher };
+class Grid {
+  constructor({
+    $gridContainer,
+    handleGridMouseLeave,
+    handleGridMouseMove,
+    currentYMax
+  }) {
+    this.$gridContainer = $gridContainer;
+
+    this.currentYMax = currentYMax;
+    this.currentGridMax = undefined;
+
+    this.$gridContainer.addEventListener("mouseleave", handleGridMouseLeave);
+    this.$gridContainer.addEventListener("mousemove", handleGridMouseMove);
+  }
+
+  updateMaxY(maxY) {
+    this.currentYMax = maxY;
+    return this;
+  }
+
+  render() {
+    const { $gridContainer, currentYMax } = this;
+    if ($gridContainer.children.length > 1) {
+      $gridContainer.children[0].remove();
+    }
+    const $grid = document.createElement("div");
+    $grid.className = "y-grid";
+    const itemHeight = ($gridContainer.offsetHeight * 0.9) / 5 - 1;
+
+    const max = currentYMax * 0.9;
+
+    const step = max / 5;
+    const data = [];
+    for (let i = 0, offset = 0; i < 6; i++) {
+      data.push(Math.floor(offset));
+      offset += step;
+    }
+
+    let bottom = 0;
+    for (let i = 0; i < data.length; i++) {
+      const $item = document.createElement("div");
+      $item.className = "y-grid-item";
+      $item.innerHTML = `<span>${data[i]}</span>`;
+      $item.style.bottom = `${bottom}px`;
+      $grid.appendChild($item);
+      bottom += itemHeight;
+    }
+    $gridContainer.appendChild($grid);
+
+    if ($gridContainer.children.length > 1) {
+      if (currentYMax < this.currentGridMax) {
+        $gridContainer.children[0].classList.add("animate-up");
+        $gridContainer.children[1].classList.add("animate-down");
+
+        $grid.offsetWidth;
+        $gridContainer.children[1].classList.remove("animate-down");
+      } else {
+        $gridContainer.children[0].classList.add("animate-down");
+        $gridContainer.children[1].classList.add("animate-up");
+
+        $grid.offsetWidth;
+        $gridContainer.children[1].classList.remove("animate-up");
+      }
+    }
+
+    this.currentGridMax = currentYMax;
+  }
+}
+
+export { renderButtons, renderThemeSwitcher, Grid };

@@ -21,6 +21,7 @@ async function main() {
   const textureImg = await fetchTextureImg();
 
   const $content = document.getElementById("content");
+
   for (let id = 0; id < json.length; id++) {
     $content.innerHTML += `
       <div class="chart-container">
