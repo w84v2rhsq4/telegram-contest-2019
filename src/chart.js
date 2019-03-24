@@ -53,7 +53,7 @@ class Chart {
     this.$gridContainer = document.querySelector(`#grid-${this.id}`);
     this.$tooltipLine = undefined;
 
-    this.isDarkTheme = false;
+    this.isDarkTheme = true;
   }
 
   getCurrentLargeCanvasHorizontalTransform() {
@@ -144,10 +144,13 @@ class Chart {
 
     this.setLocalExtremeValuesMap();
 
-    this.largeCanvas.updateCamera({
-      ...this.getCurrentLargeCanvasHorizontalTransform(),
-      ...this.getCurrentLargeCanvasVerticalTransform()
-    }, isDragging);
+    this.largeCanvas.updateCamera(
+      {
+        ...this.getCurrentLargeCanvasHorizontalTransform(),
+        ...this.getCurrentLargeCanvasVerticalTransform()
+      },
+      isDragging
+    );
 
     this.hideTooltip();
 
@@ -201,9 +204,7 @@ class Chart {
     return newMaxY;
   }
 
-  handleFrameDragging() {
-
-  }
+  handleFrameDragging() {}
 
   renderDraggableFrame() {
     const {
@@ -226,7 +227,7 @@ class Chart {
 
   initPlotsData() {
     const { columns, colors } = this.data;
-    const extremeValues = findExtremeValues({plots: columns});
+    const extremeValues = findExtremeValues({ plots: columns });
 
     const x = columns[0];
     const points = [];
@@ -475,7 +476,7 @@ class Chart {
     const { min, max } = this.totalExtremeValuesMap.x;
 
     const step = 1000 * 60 * 60 * 24 * 2;
-    const days = (max - min)/step;
+    const days = (max - min) / step;
     const data = [];
     for (let i = 0, offset = min; i < days; i++) {
       const date = new Date(offset);
@@ -508,24 +509,28 @@ class Chart {
     const $container = document.querySelector(`#timeline-${id}`);
     const width = $container.parentElement.offsetWidth;
     const diff = this.rightBorder - this.leftBorder;
-    const allWidth = 100 / diff * width;
+    const allWidth = (100 / diff) * width;
     $container.style.width = `${allWidth}px`;
-    $container.style.left = `-${this.leftBorder / diff * width}px`;
+    $container.style.left = `-${(this.leftBorder / diff) * width}px`;
 
-    const l = Math.round(normalizeValueToRange({
-      value: this.leftBorder,
-      maxValue: 100,
-      minValue: 0,
-      a: 0,
-      b: $container.children.length - 1
-    }));
-    const r = Math.round(normalizeValueToRange({
-      value: this.rightBorder,
-      maxValue: 100,
-      minValue: 0,
-      a: 0,
-      b: $container.children.length - 1
-    }));
+    const l = Math.round(
+      normalizeValueToRange({
+        value: this.leftBorder,
+        maxValue: 100,
+        minValue: 0,
+        a: 0,
+        b: $container.children.length - 1
+      })
+    );
+    const r = Math.round(
+      normalizeValueToRange({
+        value: this.rightBorder,
+        maxValue: 100,
+        minValue: 0,
+        a: 0,
+        b: $container.children.length - 1
+      })
+    );
 
     const elementWidth = Math.max(width / (r - l), 90);
     const count = width / elementWidth;
@@ -533,16 +538,17 @@ class Chart {
     let offset = l;
 
     for (let i = 0; i < $container.children.length; i++) {
-      if ($container.children[i].classList.contains('active')) {
-        $container.children[i].classList.remove('active');
+      if ($container.children[i].classList.contains("active")) {
+        $container.children[i].classList.remove("active");
       }
-      $container.children[i].style.width = `${(allWidth - width) / ($container.children.length - count)}px`;
+      $container.children[i].style.width = `${(allWidth - width) /
+        ($container.children.length - count)}px`;
     }
 
     for (let i = l; i <= r; i++) {
       if (i === offset || i === r) {
         offset += stride;
-        $container.children[i].classList.add('active');
+        $container.children[i].classList.add("active");
         $container.children[i].style.width = `${width / count}px`;
       }
     }
