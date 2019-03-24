@@ -26,12 +26,14 @@ async function main() {
     $content.innerHTML += `
       <div id="chart-container-${id}" class="chart-container">
         <h2 class="chart-header">Chart #${id}</h2>
+        <div class="canvas-container_">
         <div class="canvas-container">
           <div id="tooltip-${id}" class="tooltip"></div>
           <canvas id="chart-canvas-${id}" class="chart-canvas"></canvas>
           <div id="grid-${id}" class="y-grid-container"></div>
-          <div id="timeline-${id}" class="timeline-container"></div>
+          <div class="timeline-container_"><div id="timeline-${id}" class="timeline-container"></div></div>
           <div id="blank-${id}" class="blank"></div>
+        </div>
         </div>
         <div id="overall-${id}" class="overall">
           <div id="left-overlay-${id}" class="overlay overlay-left"></div>

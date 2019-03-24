@@ -12,7 +12,7 @@ import {
   multiplyVector4,
   identityMatrix
 } from "./maths";
-import { months, getEventProps } from "./utils";
+import { months, getEventProps, throttle } from "./utils";
 
 class Chart {
   constructor({ id, data, textureImg }) {
@@ -40,6 +40,13 @@ class Chart {
     this.handleGridMouseMove = this.handleGridMouseMove.bind(this);
     this.handleGridMouseLeave = this.handleGridMouseLeave.bind(this);
     this.setTheme = this.setTheme.bind(this);
+
+    this.throttleGridUpdate = throttle(() => {
+      this.grid.updateMaxY(this.currentFrameExtremeValuesMap.y.max).render();
+    }, 300);
+    this.throttleTimelineUpdate = throttle(() => {
+      this.reRenderTimeline();
+    }, 300);
 
     this.$largeCanvas = document.querySelector(`#chart-canvas-${id}`);
     this.$smallCanvas = document.querySelector(`#overall-canvas-${id}`);
@@ -139,18 +146,25 @@ class Chart {
     this.largeCanvas.updateCamera({
       ...this.getCurrentLargeCanvasHorizontalTransform(),
       ...this.getCurrentLargeCanvasVerticalTransform()
-    });
+    }, isDragging);
 
     this.hideTooltip();
 
-    if (!isDragging) {
+    if (isDragging) {
+      this.throttleGridUpdate();
+    } else {
       this.grid.updateMaxY(currentFrameExtremeValuesMap.y.max).render();
     }
-    this.renderTimeline();
+    if (isDragging) {
+      this.throttleTimelineUpdate();
+    } else {
+      this.reRenderTimeline();
+    }
   }
 
   handleFrameDraggingStop() {
     this.grid.updateMaxY(this.currentFrameExtremeValuesMap.y.max).render();
+    this.reRenderTimeline();
   }
 
   handleVisibilityToggle(index, isVisible) {
@@ -184,20 +198,26 @@ class Chart {
     return newMaxY;
   }
 
+  handleFrameDragging() {
+
+  }
+
   renderDraggableFrame() {
     const {
       id,
       leftBorder,
       rightBorder,
       handleFrameChange,
-      handleFrameDraggingStop
+      handleFrameDraggingStop,
+      handleFrameDragging
     } = this;
     new DraggableFrame({
       plotId: id,
       leftBorder,
       rightBorder,
       frameChangeCallback: handleFrameChange,
-      handleFrameDraggingStop
+      handleFrameDraggingStop,
+      handleFrameDragging
     });
   }
 
@@ -449,13 +469,13 @@ class Chart {
   renderTimeline() {
     const { id } = this;
     const $container = document.querySelector(`#timeline-${id}`);
-    $container.innerHTML = "";
-    const { min, max } = this.currentFrameExtremeValuesMap.x;
+    const { min, max } = this.totalExtremeValuesMap.x;
 
-    const step = (max - min) / 6;
+    const step = 1000 * 60 * 60 * 24 * 2;
+    const days = (max - min)/step;
     const data = [];
-    for (let i = 0, offset = min; i < 6; i++) {
-      const date = new Date(Math.floor(offset));
+    for (let i = 0, offset = min; i < days; i++) {
+      const date = new Date(offset);
 
       data.push(`${months[date.getMonth()]} ${date.getDate()}`);
       offset += step;
@@ -463,9 +483,8 @@ class Chart {
 
     for (let i = 0; i < data.length; i++) {
       const $item = document.createElement("div");
-      $item.className = "timeline-item";
+      $item.className = `timeline-item`;
       $item.innerHTML = `<span>${data[i]}</span>`;
-
       $container.appendChild($item);
     }
   }
@@ -481,6 +500,51 @@ class Chart {
     renderThemeSwitcher({ setTheme, isInitialThemeDark: isDarkTheme });
   }
 
+  reRenderTimeline() {
+    const { id } = this;
+    const $container = document.querySelector(`#timeline-${id}`);
+    const width = $container.parentElement.offsetWidth;
+    const diff = this.rightBorder - this.leftBorder;
+    const allWidth = 100 / diff * width;
+    $container.style.width = `${allWidth}px`;
+    $container.style.left = `-${this.leftBorder / diff * width}px`;
+
+    const l = Math.round(normalizeValueToRange({
+      value: this.leftBorder,
+      maxValue: 100,
+      minValue: 0,
+      a: 0,
+      b: $container.children.length - 1
+    }));
+    const r = Math.round(normalizeValueToRange({
+      value: this.rightBorder,
+      maxValue: 100,
+      minValue: 0,
+      a: 0,
+      b: $container.children.length - 1
+    }));
+
+    const elementWidth = Math.max(width / (r - l), 90);
+    const count = width / elementWidth;
+    const stride = Math.round((r - l) / count);
+    let offset = l;
+
+    for (let i = 0; i < $container.children.length; i++) {
+      if ($container.children[i].classList.contains('active')) {
+        $container.children[i].classList.remove('active');
+      }
+      $container.children[i].style.width = `${(allWidth - width) / ($container.children.length - count)}px`;
+    }
+
+    for (let i = l; i <= r; i++) {
+      if (i === offset || i === r) {
+        offset += stride;
+        $container.children[i].classList.add('active');
+        $container.children[i].style.width = `${width / count}px`;
+      }
+    }
+  }
+
   async render() {
     this.initPlotsData();
     this.renderButtons();
@@ -490,6 +554,7 @@ class Chart {
     this.renderTooltip();
     this.renderYGrid();
     this.renderTimeline();
+    this.reRenderTimeline();
   }
 }
 

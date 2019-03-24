@@ -6,7 +6,8 @@ class DraggableFrame {
     leftBorder,
     rightBorder,
     frameChangeCallback,
-    handleFrameDraggingStop
+    handleFrameDraggingStop,
+    handleFrameDragging
   }) {
     this.containerId = `overall-${plotId}`;
     this.leftGrabberId = `left-grabber-${plotId}`;
@@ -22,6 +23,7 @@ class DraggableFrame {
     this.rightBorder = rightBorder;
     this.frameChangeCallback = frameChangeCallback;
     this.handleFrameDraggingStop = handleFrameDraggingStop;
+    this.handleFrameDragging = handleFrameDragging;
 
     this.frameDraggingStartPoint = undefined;
     this.leftDraggingStartPoint = undefined;
@@ -249,6 +251,8 @@ class DraggableFrame {
     this.setBorders(this.leftBorder - dx, this.rightBorder - dx);
 
     this.frameDraggingStartPoint = clientX;
+
+    this.handleFrameDragging();
   }
 
   stopFrameDrag() {

@@ -108,21 +108,23 @@ class Canvas {
     return out;
   }
 
-  updateCamera(newSettings) {
-    for (const property of Object.keys(newSettings)) {
-      this.keyframes.push({
-        name: property,
-        start: this.cameraSettings[property],
-        end: newSettings[property],
-        time: [performance.now(), performance.now() + 300]
-      });
-    }
+  updateCamera(newSettings, isDragging) {
+    if (isDragging) {
+      this.setCamera({ ...this.cameraSettings, ...newSettings });
+      this.update();
+    } else {
+      for (const property of Object.keys(newSettings)) {
+        this.keyframes.push({
+          name: property,
+          start: this.cameraSettings[property],
+          end: newSettings[property],
+          time: [performance.now(), performance.now() + 300]
+        });
+      }
 
-    // this.setCamera({ ...this.cameraSettings, ...newSettings });
-    // this.update();
-
-    if (this.keyframes.length) {
-      this.animateCamera(performance.now());
+      if (this.keyframes.length) {
+        this.animateCamera(performance.now());
+      }
     }
   }
 
