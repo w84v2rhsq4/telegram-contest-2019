@@ -141,7 +141,7 @@ class DraggableFrame {
   }
 
   handleMouseMove(e) {
-    console.log(e.target);
+    // console.log(e.target);
     if (this.isFrameDragging()) {
       // this.disableScroll();
       this.processFrameDrag(e);

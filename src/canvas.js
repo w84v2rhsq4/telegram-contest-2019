@@ -11,7 +11,8 @@ class Canvas {
     textureImg,
     thickness,
     plotsVisibility,
-    cameraSettings
+    cameraSettings,
+    isDarkTheme
   }) {
     this.$canvas = $canvas;
     this.points = points;
@@ -30,6 +31,7 @@ class Canvas {
     this.redraw = true;
     this.keyframes = [];
     this.alpha = plotColors.map(() => ({ value: 1 }));
+    this.isDarkTheme = isDarkTheme;
 
     this.animate = this.animate.bind(this);
     this.animateCamera = this.animateCamera.bind(this);
@@ -79,6 +81,10 @@ class Canvas {
     this.cameraSettings = cameraSettings;
     this.viewMatrix = viewMatrix;
     this.projectionMatrix = projectionMatrix;
+  }
+
+  setTheme(isDark) {
+    this.isDarkTheme = isDark;
   }
 
   initCamera(settings) {
@@ -157,6 +163,7 @@ class Canvas {
     this.currentAlpha = index;
     this.animateAlpha(performance.now());
   }
+
   animateAlpha(sec) {
     const currentAlpha = this.alpha[this.currentAlpha];
     let time = normalizeValueToRange({
@@ -168,7 +175,6 @@ class Canvas {
     });
 
     currentAlpha.value = this.lerp(currentAlpha.start, currentAlpha.end, time);
-    // console.log(currentAlpha.value);
 
     this.update();
 
@@ -257,6 +263,7 @@ class Canvas {
 
   animate() {
     const { redraw } = this;
+
     if (redraw) {
       this.render();
     }
@@ -320,6 +327,10 @@ class Canvas {
       textureImg
     );
     gl.generateMipmap(gl.TEXTURE_2D);
+  }
+
+  updateTheme(isDark) {
+    this.isDarkTheme = isDark;
   }
 }
 

@@ -39,11 +39,14 @@ class Chart {
     this.handleVisibilityToggle = this.handleVisibilityToggle.bind(this);
     this.handleGridMouseMove = this.handleGridMouseMove.bind(this);
     this.handleGridMouseLeave = this.handleGridMouseLeave.bind(this);
+    this.setTheme = this.setTheme.bind(this);
 
     this.$largeCanvas = document.querySelector(`#chart-canvas-${id}`);
     this.$smallCanvas = document.querySelector(`#overall-canvas-${id}`);
     this.$gridContainer = document.querySelector(`#grid-${this.id}`);
     this.$tooltipLine = undefined;
+
+    this.isDarkTheme = false;
   }
 
   getCurrentLargeCanvasHorizontalTransform() {
@@ -234,12 +237,13 @@ class Chart {
   }
 
   renderCanvases() {
-    const { $largeCanvas, $smallCanvas } = this;
+    const { $largeCanvas, $smallCanvas, isDarkTheme } = this;
     const commonOptions = {
       points: this.points,
       textureImg: this.textureImg,
       plotColors: this.plotColors,
-      plotsVisibility: this.plotsVisibility
+      plotsVisibility: this.plotsVisibility,
+      isDarkTheme
     };
 
     this.largeCanvas = new Canvas({
@@ -466,12 +470,23 @@ class Chart {
     }
   }
 
+  setTheme(isDark) {
+    this.isDarkTheme = isDark;
+    this.largeCanvas.updateTheme(isDark);
+    this.smallCanvas.updateTheme(isDark);
+  }
+
+  renderThemeSwitcher() {
+    const { setTheme, isDarkTheme } = this;
+    renderThemeSwitcher({ setTheme, isInitialThemeDark: isDarkTheme });
+  }
+
   async render() {
     this.initPlotsData();
     this.renderButtons();
     this.renderDraggableFrame();
     this.renderCanvases();
-    renderThemeSwitcher();
+    this.renderThemeSwitcher();
     this.renderTooltip();
     this.renderYGrid();
     this.renderTimeline();

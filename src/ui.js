@@ -41,8 +41,7 @@ function renderButtons({ plotId, data, checked, handleVisibilityToggle }) {
   });
 }
 
-function renderThemeSwitcher() {
-  const isInitialThemeDark = true;
+function renderThemeSwitcher({ setTheme, isInitialThemeDark }) {
   const $switcher = document.getElementById("theme-switcher");
   let isDark = isInitialThemeDark;
 
@@ -59,7 +58,7 @@ function renderThemeSwitcher() {
     isDark = !isDark;
 
     setInnerText($switcher);
-
+    setTheme(isDark);
     document.body.classList.toggle("dark", isDark);
   });
 }
