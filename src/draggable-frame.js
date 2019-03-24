@@ -7,7 +7,13 @@ function getEventProps(e) {
 }
 
 class DraggableFrame {
-  constructor({ plotId, leftBorder, rightBorder, frameChangeCallback }) {
+  constructor({
+    plotId,
+    leftBorder,
+    rightBorder,
+    frameChangeCallback,
+    handleFrameDraggingStop
+  }) {
     this.containerId = `overall-${plotId}`;
     this.leftGrabberId = `left-grabber-${plotId}`;
     this.rightGrabberId = `right-grabber-${plotId}`;
@@ -20,6 +26,7 @@ class DraggableFrame {
     this.leftBorder = leftBorder;
     this.rightBorder = rightBorder;
     this.frameChangeCallback = frameChangeCallback;
+    this.handleFrameDraggingStop = handleFrameDraggingStop;
 
     this.frameDraggingStartPoint = undefined;
     this.leftDraggingStartPoint = undefined;
@@ -185,6 +192,7 @@ class DraggableFrame {
 
   stopLeftGrabberDrag() {
     this.leftDraggingStartPoint = undefined;
+    this.handleFrameDraggingStop();
   }
 
   /** Right dragging */
@@ -210,6 +218,7 @@ class DraggableFrame {
 
   stopRightGrabberDrag() {
     this.rightDraggingStartPoint = undefined;
+    this.handleFrameDraggingStop();
   }
 
   /** Frame dragging */
@@ -234,6 +243,7 @@ class DraggableFrame {
 
   stopFrameDrag() {
     this.frameDraggingStartPoint = undefined;
+    this.handleFrameDraggingStop();
   }
 
   /** Overlay click  */
@@ -265,7 +275,12 @@ class DraggableFrame {
       newLeftBorder = 100 - frameWidthInPercents;
     }
 
-    this.frameChangeCallback(newLeftBorder, newRightBorder);
+    const isDragging =
+      this.isFrameDragging() ||
+      this.isLeftGrabberDragging() ||
+      this.isRightGrabberDragging();
+
+    this.frameChangeCallback(newLeftBorder, newRightBorder, isDragging);
     this.setLeftBorder(newLeftBorder);
     this.setRightBorder(newRightBorder);
   }

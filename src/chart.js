@@ -33,6 +33,7 @@ class Chart {
     this.currentFrameExtremeValuesMap = {};
 
     this.handleFrameChange = this.handleFrameChange.bind(this);
+    this.handleFrameDraggingStop = this.handleFrameDraggingStop.bind(this);
     this.handleVisibilityToggle = this.handleVisibilityToggle.bind(this);
     this.handleGridMouseMove = this.handleGridMouseMove.bind(this);
     this.handleGridMouseLeave = this.handleGridMouseLeave.bind(this);
@@ -40,6 +41,7 @@ class Chart {
     this.$largeCanvas = document.querySelector(`#chart-canvas-${id}`);
     this.$smallCanvas = document.querySelector(`#overall-canvas-${id}`);
     this.$gridContainer = document.querySelector(`#grid-${this.id}`);
+    this.$tooltipLine = undefined;
   }
 
   getCurrentLargeCanvasHorizontalTransform() {
@@ -123,7 +125,7 @@ class Chart {
     );
   }
 
-  handleFrameChange(leftBorder, rightBorder) {
+  handleFrameChange(leftBorder, rightBorder, isDragging) {
     const { currentFrameExtremeValuesMap } = this;
     this.updateFrameBorders(leftBorder, rightBorder);
 
@@ -134,8 +136,14 @@ class Chart {
       ...this.getCurrentLargeCanvasVerticalTransform()
     });
 
-    this.grid.updateMaxY(currentFrameExtremeValuesMap.y.max).render();
+    if (!isDragging) {
+      this.grid.updateMaxY(currentFrameExtremeValuesMap.y.max).render();
+    }
     this.renderTimeline();
+  }
+
+  handleFrameDraggingStop() {
+    this.grid.updateMaxY(this.currentFrameExtremeValuesMap.y.max).render();
   }
 
   handleVisibilityToggle(index, isVisible) {
@@ -165,12 +173,19 @@ class Chart {
   }
 
   renderDraggableFrame() {
-    const { id, leftBorder, rightBorder, handleFrameChange } = this;
+    const {
+      id,
+      leftBorder,
+      rightBorder,
+      handleFrameChange,
+      handleFrameDraggingStop
+    } = this;
     new DraggableFrame({
       plotId: id,
       leftBorder,
       rightBorder,
-      frameChangeCallback: handleFrameChange
+      frameChangeCallback: handleFrameChange,
+      handleFrameDraggingStop
     });
   }
 
@@ -203,7 +218,7 @@ class Chart {
   }
 
   renderCanvases() {
-    const { id, $largeCanvas, $smallCanvas } = this;
+    const { $largeCanvas, $smallCanvas } = this;
     const commonOptions = {
       points: this.points,
       textureImg: this.textureImg,
@@ -254,6 +269,10 @@ class Chart {
 
   handleGridMouseLeave() {
     this.tooltip.hide();
+    if (this.$tooltipLine !== undefined) {
+      this.$gridContainer.removeChild(this.$tooltipLine);
+      this.$tooltipLine = undefined;
+    }
   }
 
   handleGridMouseMove(e) {
@@ -282,6 +301,37 @@ class Chart {
         color: data.colors[plotName]
       });
     }
+
+    if (typeof this.$tooltipLine === "undefined") {
+      this.$tooltipLine = document.createElement("div");
+      this.$tooltipLine.className = "vertical-line";
+    } else {
+      while (this.$tooltipLine.lastChild) {
+        this.$tooltipLine.removeChild(this.$tooltipLine.lastChild);
+      }
+    }
+
+    this.$tooltipLine.style = `left: ${e.offsetX}px`;
+
+    for (let i = 1; i < originalPoints.length; i++) {
+      this.$yPoint = document.createElement("div");
+      const y = normalizeValueToRange({
+        value: originalPoints[i][valueIndex],
+        maxValue: currentFrameExtremeValuesMap.y.max,
+        minValue: currentFrameExtremeValuesMap.y.min,
+        a: 0,
+        b: $gridContainer.offsetHeight
+      });
+      this.$yPoint.className = "tooltip-point";
+
+      this.$yPoint.style = ` bottom: ${y}px; border-color: ${
+        this.data.colors[this.data.columns[i][0]]
+      }`;
+
+      this.$tooltipLine.appendChild(this.$yPoint);
+    }
+
+    $gridContainer.appendChild(this.$tooltipLine);
 
     this.updateTooltip({
       plotsData: tooltipData,
