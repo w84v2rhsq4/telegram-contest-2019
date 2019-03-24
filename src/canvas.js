@@ -1,7 +1,7 @@
 import vertexShader from "./shaders/points.vert";
 import fragmentShader from "./shaders/points.frag";
 
-import { getProjectionByAspect , normalizeValueToRange } from "./maths";
+import { getProjectionByAspect, normalizeValueToRange } from "./maths";
 
 class Canvas {
   constructor({
@@ -29,7 +29,7 @@ class Canvas {
     this.buffers = [];
     this.redraw = true;
     this.keyframes = [];
-    this.alpha = plotColors.map(() => ({value: 1}));
+    this.alpha = plotColors.map(() => ({ value: 1 }));
 
     this.animate = this.animate.bind(this);
     this.animateCamera = this.animateCamera.bind(this);
@@ -131,7 +131,7 @@ class Canvas {
         a: 0,
         b: 1
       });
-  
+
       newSettings[k.name] = this.lerp(k.start, k.end, Math.min(time, 1));
     }
 
@@ -166,9 +166,9 @@ class Canvas {
       a: 0,
       b: 1
     });
-  
+
     currentAlpha.value = this.lerp(currentAlpha.start, currentAlpha.end, time);
-    console.log(currentAlpha.value);
+    // console.log(currentAlpha.value);
 
     this.update();
 
@@ -292,7 +292,11 @@ class Canvas {
       // if (!this.plotsVisibility[i]) {
       //   continue;
       // }
-      gl.uniform4f(this.colorLocation, ...this.plotColors[i], this.alpha[i].value);
+      gl.uniform4f(
+        this.colorLocation,
+        ...this.plotColors[i],
+        this.alpha[i].value
+      );
       gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers[i]);
       gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
       gl.enableVertexAttribArray(0);

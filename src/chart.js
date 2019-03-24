@@ -159,6 +159,9 @@ class Chart {
     this.smallCanvas.updateCamera(
       this.getCurrentSmallCanvasVerticalTransform()
     );
+
+    // this.setLocalExtremeValuesMap();
+    // this.grid.updateMaxY(this.currentFrameExtremeValuesMap.y.max).render();
   }
 
   getMaxYOfVisiblePlotsFromMap(map) {
@@ -204,7 +207,11 @@ class Chart {
 
     for (let i = 1; i < columns.length; i++) {
       const column = columns[i];
-      const { generatedPoints, resultArray } = generatePoints(x, column, extremeValues);
+      const { generatedPoints, resultArray } = generatePoints(
+        x,
+        column,
+        extremeValues
+      );
 
       result.push(resultArray);
       points.push(generatedPoints);
@@ -235,7 +242,7 @@ class Chart {
     this.largeCanvas = new Canvas({
       ...commonOptions,
       $canvas: $largeCanvas,
-      thickness: 4.0,
+      thickness: 6.0,
       cameraSettings: {
         viewTranslateZ: -1,
         ...this.getCurrentLargeCanvasHorizontalTransform(),
@@ -263,7 +270,7 @@ class Chart {
   renderTooltip() {
     const { id } = this;
     const $tooltip = document.querySelector(`#tooltip-${id}`);
-    this.tooltip = new Tooltip({ $tooltip });
+    this.tooltip = new Tooltip({ $tooltip, $container: this.$largeCanvas });
   }
 
   updateTooltip(data) {
@@ -289,15 +296,7 @@ class Chart {
       data
     } = this;
 
-    // const value = normalizeValueToRange({
-    //   value: e.offsetX,
-    //   maxValue: $gridContainer.offsetWidth,
-    //   minValue: 0,
-    //   a: currentFrameExtremeValuesMap.x.min,
-    //   b: currentFrameExtremeValuesMap.x.max
-    // });
-    // const valueIndex = findIndexOfClosestValue(originalPoints[0], value);
-    const diff = 100/(this.rightBorder - this.leftBorder);
+    const diff = 100 / (this.rightBorder - this.leftBorder);
     const l = normalizeValueToRange({
       value: this.leftBorder,
       maxValue: 100,
@@ -316,21 +315,22 @@ class Chart {
       value: e.offsetX,
       maxValue: this.$grid.offsetWidth,
       minValue: 0,
-      a: l*diff,
-      b: r*diff
+      a: l * diff,
+      b: r * diff
     });
-    
-    let ndc = [
-      x,
-      -( e.offsetY / this.$grid.offsetHeight ) * 2 + 1,
-      0,
-      0
-    ];
 
-    const Iproj = getInverse(this.largeCanvas.projectionMatrix, new Float32Array(identityMatrix));
-    const Iview = getInverse(this.largeCanvas.viewMatrix, new Float32Array(identityMatrix));
-    ndc = multiplyVector4( ndc, Iproj );
-    ndc = multiplyVector4( ndc, Iview );
+    let ndc = [x, -(e.offsetY / this.$grid.offsetHeight) * 2 + 1, 0, 0];
+
+    const Iproj = getInverse(
+      this.largeCanvas.projectionMatrix,
+      new Float32Array(identityMatrix)
+    );
+    const Iview = getInverse(
+      this.largeCanvas.viewMatrix,
+      new Float32Array(identityMatrix)
+    );
+    ndc = multiplyVector4(ndc, Iproj);
+    ndc = multiplyVector4(ndc, Iview);
 
     function getValueIndex(array, value) {
       return array.reduce((prev, _, i) => {
@@ -346,11 +346,11 @@ class Chart {
     const xyIndex = getValueIndex(this.resultArray[0], ndc[0]);
     const valueIndex = xyIndex / 2 + 1;
 
-
-
-
     const tooltipData = [];
     for (let i = 1; i < originalPoints.length; i++) {
+      if (!this.plotsVisibility[i - 1]) {
+        continue;
+      }
       const plotName = originalPoints[i][0];
       tooltipData.push({
         name: data.names[plotName],
@@ -378,6 +378,9 @@ class Chart {
     this.$tooltipLine.style = `left: ${tooltipX}px`;
 
     for (let i = 1; i < originalPoints.length; i++) {
+      if (!this.plotsVisibility[i - 1]) {
+        continue;
+      }
       this.$yPoint = document.createElement("div");
       const y = normalizeValueToRange({
         value: originalPoints[i][valueIndex],
@@ -399,7 +402,10 @@ class Chart {
 
     this.updateTooltip({
       plotsData: tooltipData,
-      time: originalPoints[0][valueIndex]
+      time: originalPoints[0][valueIndex],
+      targetPosition: {
+        x: tooltipX
+      }
     });
   }
 
