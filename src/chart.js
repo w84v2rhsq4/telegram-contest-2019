@@ -1,7 +1,6 @@
 import DraggableFrame from "./draggable-frame";
 import Canvas from "./canvas";
 import Tooltip from "./tooltip";
-
 import { renderButtons, renderThemeSwitcher, Grid } from "./ui";
 import {
   findExtremeValues,
@@ -13,7 +12,7 @@ import {
   multiplyVector4,
   identityMatrix
 } from "./maths";
-import { months } from "./utils";
+import { months, getEventProps } from "./utils";
 
 class Chart {
   constructor({ id, data, textureImg }) {
@@ -139,6 +138,8 @@ class Chart {
       ...this.getCurrentLargeCanvasVerticalTransform()
     });
 
+    this.hideTooltip();
+
     if (!isDragging) {
       this.grid.updateMaxY(currentFrameExtremeValuesMap.y.max).render();
     }
@@ -159,6 +160,8 @@ class Chart {
     this.smallCanvas.updateCamera(
       this.getCurrentSmallCanvasVerticalTransform()
     );
+
+    this.hideTooltip();
 
     // this.setLocalExtremeValuesMap();
     // this.grid.updateMaxY(this.currentFrameExtremeValuesMap.y.max).render();
@@ -280,7 +283,7 @@ class Chart {
       .show();
   }
 
-  handleGridMouseLeave() {
+  hideTooltip() {
     this.tooltip.hide();
     if (this.$tooltipLine !== undefined) {
       this.$gridContainer.removeChild(this.$tooltipLine);
@@ -288,13 +291,18 @@ class Chart {
     }
   }
 
-  handleGridMouseMove(e) {
+  handleGridMouseLeave() {
+    this.hideTooltip();
+  }
+
+  handleGridMouseMove(event) {
     const {
       $gridContainer,
       originalPoints,
       currentFrameExtremeValuesMap,
       data
     } = this;
+    const e = getEventProps(event);
 
     const diff = 100 / (this.rightBorder - this.leftBorder);
     const l = normalizeValueToRange({
@@ -312,14 +320,19 @@ class Chart {
       b: 1
     });
     const x = normalizeValueToRange({
-      value: e.offsetX,
+      value: e.offsetX || e.clientX,
       maxValue: this.$grid.offsetWidth,
       minValue: 0,
       a: l * diff,
       b: r * diff
     });
 
-    let ndc = [x, -(e.offsetY / this.$grid.offsetHeight) * 2 + 1, 0, 0];
+    let ndc = [
+      x,
+      -(e.offsetY || e.clientY / this.$grid.offsetHeight) * 2 + 1,
+      0,
+      0
+    ];
 
     const Iproj = getInverse(
       this.largeCanvas.projectionMatrix,

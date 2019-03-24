@@ -24,7 +24,7 @@ async function main() {
 
   for (let id = 0; id < json.length; id++) {
     $content.innerHTML += `
-      <div class="chart-container">
+      <div id="chart-container-${id}" class="chart-container">
         <h2 class="chart-header">Chart #${id}</h2>
         <div class="canvas-container">
           <div id="tooltip-${id}" class="tooltip"></div>

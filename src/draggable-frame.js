@@ -1,10 +1,4 @@
-function getEventProps(e) {
-  if (e.touches && e.touches.length === 1) {
-    return e.touches[0];
-  } else {
-    return e;
-  }
-}
+import { getEventProps } from "./utils";
 
 class DraggableFrame {
   constructor({
@@ -20,6 +14,7 @@ class DraggableFrame {
     this.frameId = `frame-${plotId}`;
     this.leftOverlayId = `left-overlay-${plotId}`;
     this.rightOverlayId = `right-overlay-${plotId}`;
+    this.chartContainerId = `chart-container-${plotId}`;
 
     this.minFrameWidth = 10;
 
@@ -38,6 +33,7 @@ class DraggableFrame {
     this.$frame = document.getElementById(this.frameId);
     this.$leftOverlay = document.getElementById(this.leftOverlayId);
     this.$rightOverlay = document.getElementById(this.rightOverlayId);
+    this.$chartContainer = document.getElementById(this.chartContainerId);
 
     this.$container.addEventListener("click", this);
     this.$container.addEventListener("mousedown", this);
@@ -45,12 +41,11 @@ class DraggableFrame {
     this.$container.addEventListener("touchstart", this);
 
     document.addEventListener("mousemove", this);
-    document.addEventListener("touchmove", this, {
-      passive: false
-    });
+
+    this.$chartContainer.addEventListener("touchmove", this);
 
     document.addEventListener("mouseup", this);
-    document.addEventListener("touchend", this);
+    this.$chartContainer.addEventListener("touchend", this);
 
     this.setLeftBorder(this.leftBorder);
     this.setRightBorder(this.rightBorder);
@@ -68,6 +63,9 @@ class DraggableFrame {
       }
       case "touchstart": {
         if (event.touches.length === 1) {
+          const { clientX, clientY } = getEventProps(event);
+          this.__x = clientX;
+          this.__y = clientY;
           this.handleMouseDown(event);
         }
         break;
@@ -77,6 +75,17 @@ class DraggableFrame {
         break;
       }
       case "touchmove": {
+        const { clientX, clientY } = getEventProps(event);
+        const x = this.__x - clientX;
+        const y = this.__y - clientY;
+        if (Math.abs(x) > Math.abs(y)) {
+          event.preventDefault();
+        } else {
+          return;
+        }
+
+        console.log(event.target);
+
         if (event.touches.length === 1) {
           this.handleMouseMove(event);
         }
@@ -132,6 +141,7 @@ class DraggableFrame {
   }
 
   handleMouseMove(e) {
+    console.log(e.target);
     if (this.isFrameDragging()) {
       // this.disableScroll();
       this.processFrameDrag(e);

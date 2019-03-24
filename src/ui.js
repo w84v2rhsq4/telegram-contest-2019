@@ -79,6 +79,7 @@ class Grid {
 
     $grid.addEventListener("mouseleave", handleGridMouseLeave);
     $grid.addEventListener("mousemove", handleGridMouseMove);
+    $grid.addEventListener("touchmove", handleGridMouseMove);
   }
 
   updateMaxY(maxY) {

@@ -8,4 +8,11 @@ const months = [
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-export { months, days };
+function getEventProps(e) {
+  if (e.touches && e.touches.length === 1) {
+    return e.touches[0];
+  } else {
+    return e;
+  }
+}
+export { months, days, getEventProps };
