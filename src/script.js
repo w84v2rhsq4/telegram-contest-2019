@@ -3,7 +3,7 @@ import Chart from "./chart";
 
 async function fetchTextureImg() {
   const image = new Image();
-  image.src = "./black.png";
+  image.src = "./circle.png";
   return new Promise(resolve => {
     image.onload = () => {
       resolve(image);

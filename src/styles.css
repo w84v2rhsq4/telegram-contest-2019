@@ -25,7 +25,6 @@ body {
 .main-container {
   display: flex;
   flex-direction: column;
-  box-shadow: inset 0 7px 9px -7px rgba(0, 0, 0, 0.3);
 }
 
 body.dark {
@@ -145,7 +144,7 @@ body.dark {
   letter-spacing: 0.2px;
   color: #777;
   white-space: nowrap;
-  transition: width .2s, opacity .2s;
+  transition: width 0.2s, opacity 0.2s;
   text-align: center;
   overflow: hidden;
   opacity: 0;
