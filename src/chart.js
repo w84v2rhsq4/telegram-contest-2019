@@ -473,22 +473,15 @@ class Chart {
   renderTimeline() {
     const { id } = this;
     const $container = document.querySelector(`#timeline-${id}`);
-    const { min, max } = this.totalExtremeValuesMap.x;
 
-    const step = 1000 * 60 * 60 * 24 * 2;
-    const days = (max - min) / step;
-    const data = [];
-    for (let i = 0, offset = min; i < days; i++) {
-      const date = new Date(offset);
-
-      data.push(`${months[date.getMonth()]} ${date.getDate()}`);
-      offset += step;
-    }
-
-    for (let i = 0; i < data.length; i++) {
+    for (let i = 1; i < this.originalPoints[0].length; i++) {
+      const el = this.originalPoints[0][i];
+      const date = new Date(el);
       const $item = document.createElement("div");
       $item.className = `timeline-item`;
-      $item.innerHTML = `<span>${data[i]}</span>`;
+      $item.innerHTML = `<span>${`${
+        months[date.getMonth()]
+      } ${date.getDate()}`}</span>`;
       $container.appendChild($item);
     }
   }
@@ -541,15 +534,13 @@ class Chart {
       if ($container.children[i].classList.contains("active")) {
         $container.children[i].classList.remove("active");
       }
-      $container.children[i].style.width = `${(allWidth - width) /
-        ($container.children.length - count)}px`;
+      $container.children[i].style.left = 100 * (i / ($container.children.length - 1)) + '%';
     }
 
     for (let i = l; i <= r; i++) {
-      if (i === offset || i === r) {
+      if (i === offset) {
         offset += stride;
         $container.children[i].classList.add("active");
-        $container.children[i].style.width = `${width / count}px`;
       }
     }
   }
