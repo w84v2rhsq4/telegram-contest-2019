@@ -500,6 +500,7 @@ class Chart {
   reRenderTimeline() {
     const { id } = this;
     const $container = document.querySelector(`#timeline-${id}`);
+    $container.innerHTML = '';
     const width = $container.parentElement.offsetWidth;
     const diff = this.rightBorder - this.leftBorder;
     const allWidth = (100 / diff) * width;
@@ -511,8 +512,8 @@ class Chart {
         value: this.leftBorder,
         maxValue: 100,
         minValue: 0,
-        a: 0,
-        b: $container.children.length - 1
+        a: 1,
+        b: this.originalPoints[0].length - 1
       })
     );
     const r = Math.round(
@@ -520,8 +521,8 @@ class Chart {
         value: this.rightBorder,
         maxValue: 100,
         minValue: 0,
-        a: 0,
-        b: $container.children.length - 1
+        a: 1,
+        b: this.originalPoints[0].length - 1
       })
     );
 
@@ -540,7 +541,16 @@ class Chart {
     for (let i = l; i <= r; i++) {
       if (i === offset) {
         offset += stride;
-        $container.children[i].classList.add("active");
+        const el = this.originalPoints[0][i+1];
+        const date = new Date(el);
+        const $item = document.createElement("div");
+        $item.className = `timeline-item`;
+        $item.innerHTML = `<span>${`${
+          months[date.getMonth()]
+        } ${date.getDate()}`}</span>`;
+        $item.style.left = 100 * (i / (this.originalPoints[0].length - 2)) + '%';
+        $item.classList.add("active");
+        $container.appendChild($item);
       }
     }
   }

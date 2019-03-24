@@ -120,28 +120,6 @@ body.dark {
   height: 30px;
   position: relative;
 }
-.timeline-container_::before,
-.timeline-container_::after {
-  content: '';
-  position: absolute;
-  z-index: 10;
-  height: 30px;
-  width: 50px;
-}
-.timeline-container_::after {
-  left: -18px;
-  background: linear-gradient(90deg, #fff, transparent);
-}
-.timeline-container_::before {
-  right: -18px;
-  background: linear-gradient(-90deg, #fff, transparent);
-}
-.dark .timeline-container_::after {
-  background: linear-gradient(90deg, #242f3e, transparent);
-}
-.dark .timeline-container_::before {
-  background: linear-gradient(-90deg, #242f3e, transparent);
-}
 .timeline-container {
   display: flex;
   position: absolute;
