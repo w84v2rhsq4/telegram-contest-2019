@@ -167,7 +167,7 @@ function getExtreme(arr) {
   return { max, min };
 }
 
-function findExtremeValues(plots, start, end) {
+function findExtremeValues({plots, plotsVisibility, start, end}) {
   const extremeValuesMap = {};
 
   const xPlot = plots[0];
@@ -186,6 +186,9 @@ function findExtremeValues(plots, start, end) {
   const yMaxValues = [];
   const yMinValues = [];
   for (let i = 1; i < plots.length; i++) {
+    if (plotsVisibility && plotsVisibility[i - 1] === false) {
+      continue;
+    }
     const pointsY = start !== undefined ? plots[i].slice(start, end) : plots[i];
 
     const { max: maxYi, min: minYi } = getExtreme(pointsY);

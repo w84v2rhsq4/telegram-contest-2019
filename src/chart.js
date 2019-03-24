@@ -130,11 +130,12 @@ class Chart {
     this.leftIndex = leftIndex;
     this.rightIndex = rightIndex;
 
-    this.currentFrameExtremeValuesMap = findExtremeValues(
-      this.originalPoints,
-      leftIndex,
-      rightIndex
-    );
+    this.currentFrameExtremeValuesMap = findExtremeValues({
+      plots: this.originalPoints,
+      plotsVisibility: this.plotsVisibility,
+      start: leftIndex,
+      end: rightIndex
+    });
   }
 
   handleFrameChange(leftBorder, rightBorder, isDragging) {
@@ -171,6 +172,9 @@ class Chart {
     this.largeCanvas.updateVisibility(index, isVisible);
     this.smallCanvas.updateVisibility(index, isVisible);
 
+    this.plotsVisibility[index] = isVisible;
+    this.setLocalExtremeValuesMap();
+
     this.largeCanvas.updateCamera(
       this.getCurrentLargeCanvasVerticalTransform()
     );
@@ -180,8 +184,7 @@ class Chart {
 
     this.hideTooltip();
 
-    // this.setLocalExtremeValuesMap();
-    // this.grid.updateMaxY(this.currentFrameExtremeValuesMap.y.max).render();
+    this.grid.updateMaxY(this.currentFrameExtremeValuesMap.y.max).render();
   }
 
   getMaxYOfVisiblePlotsFromMap(map) {
@@ -223,7 +226,7 @@ class Chart {
 
   initPlotsData() {
     const { columns, colors } = this.data;
-    const extremeValues = findExtremeValues(columns);
+    const extremeValues = findExtremeValues({plots: columns});
 
     const x = columns[0];
     const points = [];

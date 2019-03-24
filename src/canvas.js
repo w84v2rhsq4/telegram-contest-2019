@@ -279,7 +279,13 @@ class Canvas {
     }
 
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    if (this.isDarkTheme) {
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    } else {
+      gl.blendFuncSeparate(
+        gl.SRC_COLOR,	gl.ONE_MINUS_DST_COLOR,	gl.ONE,	gl.ONE_MINUS_SRC_ALPHA	
+      );
+    }
     gl.clearColor(0.0, 0.0, 0.0, 0.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -298,9 +304,9 @@ class Canvas {
 
     // Render geometry
     for (let i = 0; i < points.length; i++) {
-      // if (!this.plotsVisibility[i]) {
-      //   continue;
-      // }
+      if (this.alpha[i].value <= 0) {
+        continue;
+      }
       gl.uniform4f(
         this.colorLocation,
         ...this.plotColors[i],
