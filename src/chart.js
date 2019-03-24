@@ -542,12 +542,12 @@ class Chart {
       if (i === offset) {
         offset += stride;
         const el = this.originalPoints[0][i+1];
-        const date = new Date(el);
+        const date = el ? new Date(el) : '';
         const $item = document.createElement("div");
         $item.className = `timeline-item`;
-        $item.innerHTML = `<span>${`${
+        $item.innerHTML = `<span>${el ? `${
           months[date.getMonth()]
-        } ${date.getDate()}`}</span>`;
+        } ${date.getDate()}` : ''}</span>`;
         $item.style.left = 100 * (i / (this.originalPoints[0].length - 2)) + '%';
         $item.classList.add("active");
         $container.appendChild($item);
