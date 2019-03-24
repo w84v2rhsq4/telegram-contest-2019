@@ -8,7 +8,10 @@ import {
   generatePoints,
   hexToNormalizedRgb,
   normalizeValueToRange,
-  findIndexOfClosestValue
+  findIndexOfClosestValue,
+  getInverse,
+  multiplyVector4,
+  identityMatrix
 } from "./maths";
 import { months } from "./utils";
 
@@ -195,13 +198,15 @@ class Chart {
 
     const x = columns[0];
     const points = [];
+    const result = [];
     const plotColors = [];
     const visibility = [];
 
     for (let i = 1; i < columns.length; i++) {
       const column = columns[i];
-      const { generatedPoints } = generatePoints(x, column, extremeValues);
+      const { generatedPoints, resultArray } = generatePoints(x, column, extremeValues);
 
+      result.push(resultArray);
       points.push(generatedPoints);
       const name = column[0];
       plotColors.push(hexToNormalizedRgb(colors[name]));
@@ -213,6 +218,7 @@ class Chart {
     this.totalExtremeValuesMap = extremeValues;
     this.plotsVisibility = visibility;
     this.originalPoints = columns;
+    this.resultArray = result;
 
     this.setLocalExtremeValuesMap();
   }
@@ -283,14 +289,65 @@ class Chart {
       data
     } = this;
 
-    const value = normalizeValueToRange({
-      value: e.offsetX,
-      maxValue: $gridContainer.offsetWidth,
+    // const value = normalizeValueToRange({
+    //   value: e.offsetX,
+    //   maxValue: $gridContainer.offsetWidth,
+    //   minValue: 0,
+    //   a: currentFrameExtremeValuesMap.x.min,
+    //   b: currentFrameExtremeValuesMap.x.max
+    // });
+    // const valueIndex = findIndexOfClosestValue(originalPoints[0], value);
+    const diff = 100/(this.rightBorder - this.leftBorder);
+    const l = normalizeValueToRange({
+      value: this.leftBorder,
+      maxValue: 100,
       minValue: 0,
-      a: currentFrameExtremeValuesMap.x.min,
-      b: currentFrameExtremeValuesMap.x.max
+      a: -1,
+      b: 1
     });
-    const valueIndex = findIndexOfClosestValue(originalPoints[0], value);
+    const r = normalizeValueToRange({
+      value: this.rightBorder,
+      maxValue: 100,
+      minValue: 0,
+      a: -1,
+      b: 1
+    });
+    const x = normalizeValueToRange({
+      value: e.offsetX,
+      maxValue: this.$grid.offsetWidth,
+      minValue: 0,
+      a: l*diff,
+      b: r*diff
+    });
+    
+    let ndc = [
+      x,
+      -( e.offsetY / this.$grid.offsetHeight ) * 2 + 1,
+      0,
+      0
+    ];
+
+    const Iproj = getInverse(this.largeCanvas.projectionMatrix, new Float32Array(identityMatrix));
+    const Iview = getInverse(this.largeCanvas.viewMatrix, new Float32Array(identityMatrix));
+    ndc = multiplyVector4( ndc, Iproj );
+    ndc = multiplyVector4( ndc, Iview );
+
+    function getValueIndex(array, value) {
+      return array.reduce((prev, _, i) => {
+        if (i % 2 === 1) {
+          return prev;
+        }
+        return Math.abs(array[i] - value) < Math.abs(array[prev] - value)
+          ? i
+          : prev;
+      }, 0);
+    }
+
+    const xyIndex = getValueIndex(this.resultArray[0], ndc[0]);
+    const valueIndex = xyIndex / 2 + 1;
+
+
+
 
     const tooltipData = [];
     for (let i = 1; i < originalPoints.length; i++) {
@@ -311,14 +368,21 @@ class Chart {
       }
     }
 
-    this.$tooltipLine.style = `left: ${e.offsetX}px`;
+    const tooltipX = normalizeValueToRange({
+      value: this.resultArray[0][xyIndex],
+      maxValue: r,
+      minValue: l,
+      a: 0,
+      b: $gridContainer.offsetWidth
+    });
+    this.$tooltipLine.style = `left: ${tooltipX}px`;
 
     for (let i = 1; i < originalPoints.length; i++) {
       this.$yPoint = document.createElement("div");
       const y = normalizeValueToRange({
         value: originalPoints[i][valueIndex],
         maxValue: currentFrameExtremeValuesMap.y.max,
-        minValue: currentFrameExtremeValuesMap.y.min,
+        minValue: 0,
         a: 0,
         b: $gridContainer.offsetHeight
       });
@@ -346,11 +410,15 @@ class Chart {
       handleGridMouseMove,
       currentFrameExtremeValuesMap
     } = this;
+
+    this.$grid = document.querySelector(`#blank-${this.id}`);
+
     this.grid = new Grid({
       $gridContainer,
       handleGridMouseLeave,
       handleGridMouseMove,
-      currentYMax: currentFrameExtremeValuesMap.y.max
+      currentYMax: currentFrameExtremeValuesMap.y.max,
+      $grid: this.$grid
     });
     this.grid.render();
   }

@@ -31,6 +31,7 @@ async function main() {
           <canvas id="chart-canvas-${id}" class="chart-canvas"></canvas>
           <div id="grid-${id}" class="y-grid-container"></div>
           <div id="timeline-${id}" class="timeline-container"></div>
+          <div id="blank-${id}" class="blank"></div>
         </div>
         <div id="overall-${id}" class="overall">
           <div id="left-overlay-${id}" class="overlay overlay-left"></div>

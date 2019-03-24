@@ -69,15 +69,16 @@ class Grid {
     $gridContainer,
     handleGridMouseLeave,
     handleGridMouseMove,
-    currentYMax
+    currentYMax,
+    $grid
   }) {
     this.$gridContainer = $gridContainer;
 
     this.currentYMax = currentYMax;
     this.currentGridMax = undefined;
 
-    this.$gridContainer.addEventListener("mouseleave", handleGridMouseLeave);
-    this.$gridContainer.addEventListener("mousemove", handleGridMouseMove);
+    $grid.addEventListener("mouseleave", handleGridMouseLeave);
+    $grid.addEventListener("mousemove", handleGridMouseMove);
   }
 
   updateMaxY(maxY) {

@@ -1,7 +1,7 @@
 import vertexShader from "./shaders/points.vert";
 import fragmentShader from "./shaders/points.frag";
 
-import { getProjectionByAspect /*, normalizeValueToRange*/ } from "./maths";
+import { getProjectionByAspect , normalizeValueToRange } from "./maths";
 
 class Canvas {
   constructor({
@@ -28,9 +28,12 @@ class Canvas {
     this.gl = undefined;
     this.buffers = [];
     this.redraw = true;
+    this.keyframes = [];
+    this.alpha = plotColors.map(() => ({value: 1}));
 
     this.animate = this.animate.bind(this);
-    /*  this.animateCamera = this.animateCamera.bind(this);*/
+    this.animateCamera = this.animateCamera.bind(this);
+    this.animateAlpha = this.animateAlpha.bind(this);
     window.onresize = this.resizeCanvas.bind(this);
 
     this.initCamera(cameraSettings);
@@ -89,56 +92,91 @@ class Canvas {
     this.setCamera({ ...defaultSettings, ...settings });
   }
 
-  updateCamera(newSettings) {
-    this.setCamera({ ...this.cameraSettings, ...newSettings });
-    this.update();
-  }
+  // updateCamera(newSettings) {
+  //   this.setCamera({ ...this.cameraSettings, ...newSettings });
+  //   this.update();
+  // }
 
-  /*lerp(a, b, t) {
+  lerp(a, b, t) {
     const out = a + t * (b - a);
     return out;
   }
 
   updateCamera(newSettings) {
-    if (newSettings.viewTranslateY) {
-      this.keyframe = [
-        this.cameraSettings.viewTranslateY,
-        newSettings.viewTranslateY,
-        [performance.now(), performance.now() + 2000]
-      ];
+    for (const property of Object.keys(newSettings)) {
+      this.keyframes.push({
+        name: property,
+        start: this.cameraSettings[property],
+        end: newSettings[property],
+        time: [performance.now(), performance.now() + 300]
+      });
     }
 
-    delete newSettings.viewTranslateY;
-    this.setCamera({ ...this.cameraSettings, ...newSettings });
-    this.update();
+    // this.setCamera({ ...this.cameraSettings, ...newSettings });
+    // this.update();
 
-    if (this.keyframe) {
+    if (this.keyframes.length) {
       this.animateCamera(performance.now());
     }
   }
 
   animateCamera(sec) {
-    const time = normalizeValueToRange({
+    const newSettings = {};
+    let time = 0;
+    for (const k of this.keyframes) {
+      time = normalizeValueToRange({
+        value: sec,
+        minValue: k.time[0],
+        maxValue: k.time[1],
+        a: 0,
+        b: 1
+      });
+  
+      newSettings[k.name] = this.lerp(k.start, k.end, Math.min(time, 1));
+    }
+
+    this.setCamera({ ...this.cameraSettings, ...newSettings });
+    this.update();
+
+    if (time > 1) {
+      this.keyframes = [];
+      return;
+    }
+
+    requestAnimationFrame(this.animateCamera);
+  }
+
+  setVisibility(index, value) {
+    this.plotsVisibility[index] = value;
+
+    this.alpha[index] = {
+      start: value ? 0 : 1,
+      end: value ? 1 : 0,
+      time: [performance.now(), performance.now() + 300]
+    };
+    this.currentAlpha = index;
+    this.animateAlpha(performance.now());
+  }
+  animateAlpha(sec) {
+    const currentAlpha = this.alpha[this.currentAlpha];
+    let time = normalizeValueToRange({
       value: sec,
-      minValue: this.keyframe[2][0],
-      maxValue: this.keyframe[2][1],
+      minValue: currentAlpha.time[0],
+      maxValue: currentAlpha.time[1],
       a: 0,
       b: 1
     });
+  
+    currentAlpha.value = this.lerp(currentAlpha.start, currentAlpha.end, time);
+    console.log(currentAlpha.value);
+
+    this.update();
+
     if (time > 1) {
       return;
     }
 
-    const v = this.lerp(this.keyframe[0], this.keyframe[1], time);
-
-    this.setCamera({ ...this.cameraSettings, viewTranslateY: v });
-    this.update();
-
-    requestAnimationFrame(this.animateCamera);
-  } */
-
-  setVisibility(index, value) {
-    this.plotsVisibility[index] = value;
+    requestAnimationFrame(this.animateAlpha);
   }
 
   updateVisibility(index, value) {
@@ -232,13 +270,7 @@ class Canvas {
     }
 
     gl.enable(gl.BLEND);
-    gl.blendFuncSeparate(
-      gl.SRC_COLOR,
-      gl.ONE_MINUS_DST_COLOR,
-      gl.ONE,
-      gl.ONE_MINUS_SRC_ALPHA
-    );
-    //gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.clearColor(0.0, 0.0, 0.0, 0.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -257,10 +289,10 @@ class Canvas {
 
     // Render geometry
     for (let i = 0; i < points.length; i++) {
-      if (!this.plotsVisibility[i]) {
-        continue;
-      }
-      gl.uniform3f(this.colorLocation, ...this.plotColors[i]);
+      // if (!this.plotsVisibility[i]) {
+      //   continue;
+      // }
+      gl.uniform4f(this.colorLocation, ...this.plotColors[i], this.alpha[i].value);
       gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers[i]);
       gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
       gl.enableVertexAttribArray(0);
