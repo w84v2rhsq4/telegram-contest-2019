@@ -283,7 +283,10 @@ class Canvas {
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     } else {
       gl.blendFuncSeparate(
-        gl.SRC_COLOR,	gl.ONE_MINUS_DST_COLOR,	gl.ONE,	gl.ONE_MINUS_SRC_ALPHA	
+        gl.SRC_COLOR,
+        gl.ONE_MINUS_DST_COLOR,
+        gl.ONE,
+        gl.ONE_MINUS_SRC_ALPHA
       );
     }
     gl.clearColor(0.0, 0.0, 0.0, 0.0);
@@ -339,6 +342,7 @@ class Canvas {
 
   updateTheme(isDark) {
     this.isDarkTheme = isDark;
+    this.update();
   }
 }
 
